@@ -12,6 +12,6 @@ class Session(Base):
 
     session_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=True)
-    qr_code_id = Column(Integer, ForeignKey("qr_codes.qr_code_id"), nullable=False)
+    qr_code_id = Column(Integer, ForeignKey("qr_codes.qr_code_id"), nullable=False, index=True)
     network_mode = Column(Enum(NetworkModeEnum), default=NetworkModeEnum.online)
     started_at = Column(DateTime(timezone=True), server_default=func.now())

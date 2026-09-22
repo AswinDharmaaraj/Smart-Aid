@@ -13,7 +13,7 @@ class SeverityPrediction(Base):
     __tablename__ = "severity_predictions"
 
     prediction_id = Column(Integer, primary_key=True, index=True)
-    session_id = Column(Integer, ForeignKey("sessions.session_id"), nullable=False)
+    session_id = Column(Integer, ForeignKey("sessions.session_id"), nullable=False, index=True)
     emergency_type = Column(String(100), nullable=True)
     severity_level = Column(Enum(SeverityEnum), nullable=False)
     confidence_score = Column(Float, nullable=False)

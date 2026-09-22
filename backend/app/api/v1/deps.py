@@ -54,3 +54,9 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role.value != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return current_user
+
+
+def require_authenticated_user(current_user: User = Depends(get_current_user)) -> User:
+    """Requires the user to be authenticated (any role). Used for read-only
+    admin views. Write operations must use require_admin instead."""
+    return current_user

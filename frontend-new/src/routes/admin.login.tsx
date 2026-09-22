@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { login, register, getMe } from "@/lib/authService";
+import { login, register } from "@/lib/authService";
 import { setAdminToken } from "@/lib/adminAuth";
 
 export const Route = createFileRoute("/admin/login")({
@@ -28,17 +28,11 @@ function AdminLoginPage() {
     setLoading(true);
     try {
       if (mode === "register") {
-        await register({ full_name: fullName, email, password, role: "admin" });
+        await register({ full_name: fullName, email, password, role: "user" });
       }
       const tokenData = await login({ email, password });
-      const me = await getMe(tokenData.access_token);
       setAdminToken(tokenData.access_token);
-      
-      if (me.role !== "admin") {
-        navigate({ to: "/" });
-      } else {
-        navigate({ to: "/admin/dashboard" });
-      }
+      navigate({ to: "/admin/dashboard" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -66,8 +60,8 @@ function AdminLoginPage() {
           </button>
         </div>
 
-        <h1 className="text-2xl font-semibold text-foreground">Admin sign in</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Manage QR codes and system settings.</p>
+        <h1 className="text-2xl font-semibold text-foreground">Admin portal</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Sign in or register to view the dashboard. Admins can manage QR codes and promote users.</p>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
           {mode === "register" && (
@@ -76,6 +70,7 @@ function AdminLoginPage() {
               <input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
                 className="mt-1.5 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
@@ -86,6 +81,7 @@ function AdminLoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
               className="mt-1.5 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
@@ -95,6 +91,7 @@ function AdminLoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               className="mt-1.5 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>

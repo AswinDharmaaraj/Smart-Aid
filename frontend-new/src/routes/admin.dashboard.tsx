@@ -46,11 +46,12 @@ function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "qr" | "users">("overview");
   const [loadingQr, setLoadingQr] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [promotingId, setPromotingId] = useState<number | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [viewingQr, setViewingQr] = useState<{ location_name: string, image_base64: string } | null>(null);
   const [loadingQrImgId, setLoadingQrImgId] = useState<number | null>(null);
 
-  // Create QR form state
+  // Create QR form state (admin only)
   const [showCreate, setShowCreate] = useState(false);
   const [newLocation, setNewLocation] = useState("");
   const [newSite, setNewSite] = useState("");
@@ -92,16 +93,28 @@ function AdminDashboardPage() {
     }
     getMe(token)
       .then((me) => {
-        if (me.role !== "admin") {
-          navigate({ to: "/" });
-          return;
-        }
         setUser(me);
         fetchQrCodes();
         fetchUsers();
       })
       .catch(() => navigate({ to: "/admin/login" }));
   }, [navigate, token, fetchQrCodes, fetchUsers]);
+
+  const promoteUser = async (id: number) => {
+    if (!token) return;
+    setPromotingId(id);
+    try {
+      const updated = await apiRequest<AdminUser>(`/admin/users/${id}/promote`, {
+        method: "PATCH",
+        token,
+      });
+      setUsers((prev) => prev.map((u) => (u.user_id === id ? updated : u)));
+    } catch {
+      /* silent */
+    } finally {
+      setPromotingId(null);
+    }
+  };
 
   const toggleStatus = async (id: number) => {
     if (!token) return;
@@ -202,7 +215,10 @@ function AdminDashboardPage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--foreground)" }}>{user.full_name}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "flex-end" }}>
+              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--foreground)" }}>{user.full_name}</span>
+              <RoleBadge role={user.role} />
+            </div>
             <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{user.email}</div>
           </div>
           <Button
@@ -225,7 +241,9 @@ function AdminDashboardPage() {
             Dashboard
           </h1>
           <p style={{ color: "var(--muted-foreground)", marginTop: "0.25rem", fontSize: "0.9rem" }}>
-            Manage QR codes, users, and system settings.
+            {user.role === "admin"
+              ? "View QR codes and manage users — promote users to admin to grant full access."
+              : "You have view-only access. An admin must promote you to enable management features."}
           </p>
         </div>
 
@@ -328,14 +346,23 @@ function AdminDashboardPage() {
         {activeTab === "qr" && (
           <div style={cardStyle}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
-              <SectionTitle>All QR Codes ({qrCodes.length})</SectionTitle>
-              <Button size="sm" onClick={() => setShowCreate((v) => !v)}>
-                {showCreate ? "Cancel" : "+ New QR Code"}
-              </Button>
+              <div>
+                <SectionTitle>All QR Codes ({qrCodes.length})</SectionTitle>
+                <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", margin: "0.25rem 0 0" }}>
+                  {user.role === "admin"
+                    ? "Create and manage QR codes for SmartAid locations."
+                    : "View-only. An admin must promote you to create or manage QR codes."}
+                </p>
+              </div>
+              {user.role === "admin" && (
+                <Button size="sm" onClick={() => setShowCreate((v) => !v)}>
+                  {showCreate ? "Cancel" : "+ New QR Code"}
+                </Button>
+              )}
             </div>
 
-            {/* Create form */}
-            {showCreate && (
+            {/* Create form — admin only */}
+            {user.role === "admin" && showCreate && (
               <form
                 onSubmit={createQr}
                 style={{
@@ -378,7 +405,7 @@ function AdminDashboardPage() {
             {loadingQr ? (
               <LoadingRow />
             ) : qrCodes.length === 0 ? (
-              <EmptyState text="No QR codes yet. Create one above." />
+              <EmptyState text={user.role === "admin" ? "No QR codes yet. Create one above." : "No QR codes yet."} />
             ) : (
               <div style={{ overflowX: "auto" }}>
                 <table style={tableStyle}>
@@ -399,6 +426,7 @@ function AdminDashboardPage() {
                         <td style={tdStyle}><StatusBadge status={q.status} /></td>
                         <td style={tdStyle}>
                           <div style={{ display: "flex", gap: "0.5rem" }}>
+                            {/* View QR — available to everyone */}
                             <button
                               onClick={() => viewQr(q.qr_code_id, q.location_name)}
                               disabled={loadingQrImgId === q.qr_code_id}
@@ -416,27 +444,30 @@ function AdminDashboardPage() {
                             >
                               {loadingQrImgId === q.qr_code_id ? "…" : "View QR"}
                             </button>
-                            <button
-                              onClick={() => toggleStatus(q.qr_code_id)}
-                              disabled={togglingId === q.qr_code_id}
-                              style={{
-                                fontSize: "0.78rem",
-                                padding: "0.3rem 0.75rem",
-                                borderRadius: 8,
-                                border: "1px solid var(--border)",
-                                background: "var(--card)",
-                                cursor: "pointer",
-                                color: "var(--foreground)",
-                                transition: "opacity 0.15s",
-                                opacity: togglingId === q.qr_code_id ? 0.5 : 1,
-                              }}
-                            >
-                              {togglingId === q.qr_code_id
-                                ? "…"
-                                : q.status === "active"
-                                ? "Deactivate"
-                                : "Activate"}
-                            </button>
+                            {/* Activate/Deactivate — admin only */}
+                            {user.role === "admin" && (
+                              <button
+                                onClick={() => toggleStatus(q.qr_code_id)}
+                                disabled={togglingId === q.qr_code_id}
+                                style={{
+                                  fontSize: "0.78rem",
+                                  padding: "0.3rem 0.75rem",
+                                  borderRadius: 8,
+                                  border: "1px solid var(--border)",
+                                  background: "var(--card)",
+                                  cursor: "pointer",
+                                  color: "var(--foreground)",
+                                  transition: "opacity 0.15s",
+                                  opacity: togglingId === q.qr_code_id ? 0.5 : 1,
+                                }}
+                              >
+                                {togglingId === q.qr_code_id
+                                  ? "…"
+                                  : q.status === "active"
+                                    ? "Deactivate"
+                                    : "Activate"}
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -451,7 +482,12 @@ function AdminDashboardPage() {
         {/* ── Users Tab ────────────────────────────────────────────────── */}
         {activeTab === "users" && (
           <div style={cardStyle}>
-            <SectionTitle style={{ marginBottom: "1rem" }}>All Users ({users.length})</SectionTitle>
+            <div style={{ marginBottom: "1rem" }}>
+              <SectionTitle>All Users ({users.length})</SectionTitle>
+              <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", margin: "0.35rem 0 0" }}>
+                Promote regular users to admin to grant them full QR code management access.
+              </p>
+            </div>
             {loadingUsers ? (
               <LoadingRow />
             ) : users.length === 0 ? (
@@ -461,7 +497,7 @@ function AdminDashboardPage() {
                 <table style={tableStyle}>
                   <thead>
                     <tr>
-                      {["ID", "Full Name", "Email", "Phone", "Role", "Joined"].map((h) => (
+                      {["ID", "Full Name", "Email", "Phone", "Role", "Joined", ...(user.role === "admin" ? ["Action"] : [])].map((h) => (
                         <th key={h} style={thStyle}>{h}</th>
                       ))}
                     </tr>
@@ -475,6 +511,33 @@ function AdminDashboardPage() {
                         <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>{u.phone ?? "—"}</td>
                         <td style={tdStyle}><RoleBadge role={u.role} /></td>
                         <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>{fmtDate(u.created_at)}</td>
+                        {user.role === "admin" && (
+                          <td style={tdStyle}>
+                            {u.role === "user" ? (
+                              <button
+                                onClick={() => promoteUser(u.user_id)}
+                                disabled={promotingId === u.user_id}
+                                style={{
+                                  fontSize: "0.78rem",
+                                  padding: "0.3rem 0.85rem",
+                                  borderRadius: 8,
+                                  border: "1px solid #22c55e",
+                                  background: "#22c55e18",
+                                  cursor: promotingId === u.user_id ? "not-allowed" : "pointer",
+                                  color: "#16a34a",
+                                  fontWeight: 600,
+                                  transition: "opacity 0.15s",
+                                  opacity: promotingId === u.user_id ? 0.5 : 1,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {promotingId === u.user_id ? "Promoting…" : "Promote to Admin"}
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: "0.78rem", color: "var(--muted-foreground)" }}>—</span>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -498,7 +561,7 @@ function AdminDashboardPage() {
             <h3 style={{ marginTop: 0, marginBottom: "1.5rem", color: "var(--foreground)", fontSize: "1.25rem" }}>
               QR Code: {viewingQr.location_name}
             </h3>
-            
+
             <div style={{ padding: "1rem", background: "white", borderRadius: 16, display: "inline-block", marginBottom: "2rem" }}>
               <img src={`data:image/png;base64,${viewingQr.image_base64}`} alt="QR Code" style={{ width: 200, height: 200, display: "block" }} />
             </div>

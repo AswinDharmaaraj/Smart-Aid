@@ -7,7 +7,6 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     phone: str | None = None
-    role: RoleEnum | None = None
 
 class UserResponse(BaseModel):
     user_id: int
@@ -15,6 +14,15 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: RoleEnum
     phone: str | None = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class UserPublicResponse(BaseModel):
+    user_id: int
+    full_name: str
+    role: RoleEnum
     created_at: datetime
 
     class Config:

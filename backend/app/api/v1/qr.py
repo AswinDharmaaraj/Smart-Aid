@@ -36,7 +36,7 @@ def get_qr_image(qr_code_id: int, db: DBSession = Depends(get_db)):
     if not qr_code:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="QR code not found")
 
-    scan_url = "http://localhost:8080/session/" + str(qr_code_id)
+    scan_url = "https://corny-marxism-headed.ngrok-free.dev/session/" + str(qr_code_id)
     img = qrcode.make(scan_url)
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")

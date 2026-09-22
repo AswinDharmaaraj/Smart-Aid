@@ -15,16 +15,12 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
-    # Allow explicit role assignment if provided (e.g. from the Admin registration form)
-    is_first_user = db.query(User).count() == 0
-    assigned_role = user_in.role if user_in.role else (RoleEnum.admin if is_first_user else RoleEnum.user)
-    
     new_user = User(
         full_name=user_in.full_name,
         email=user_in.email,
         password_hash=hash_password(user_in.password),
         phone=user_in.phone,
-        role=assigned_role,
+        role=RoleEnum.user,
     )
     db.add(new_user)
     db.commit()

@@ -3,24 +3,28 @@ from sqlalchemy.orm import Session as DBSession
 from app.db.session import get_db
 from app.models.user import User, RoleEnum
 from app.models.qr_code import QRCode
-from app.schemas.user import UserResponse
+from app.schemas.user import UserResponse, UserPublicResponse
+from typing import Union
 from app.schemas.qr_code import QRCodeResponse
-from app.api.v1.deps import require_admin
+from app.api.v1.deps import require_admin, require_authenticated_user
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
-@router.get("/users", response_model=list[UserResponse])
+@router.get("/users", response_model=list[Union[UserResponse, UserPublicResponse]])
 def list_users(
-    admin: User = Depends(require_admin),
+    viewer: User = Depends(require_authenticated_user),
     db: DBSession = Depends(get_db),
 ):
-    return db.query(User).order_by(User.created_at.desc()).all()
+    users = db.query(User).order_by(User.created_at.desc()).all()
+    if viewer.role == RoleEnum.admin:
+        return [UserResponse.model_validate(u) for u in users]
+    return [UserPublicResponse.model_validate(u) for u in users]
 
 
 @router.get("/qr-codes", response_model=list[QRCodeResponse])
 def list_qr_codes(
-    admin: User = Depends(require_admin),
+    viewer: User = Depends(require_authenticated_user),
     db: DBSession = Depends(get_db),
 ):
     return db.query(QRCode).order_by(QRCode.installed_at.desc()).all()
