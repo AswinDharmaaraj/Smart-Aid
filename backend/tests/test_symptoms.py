@@ -184,3 +184,39 @@ def test_start_session_nonexistent_qr_returns_404(client):
     resp = client.get("/api/v1/qr/999999/session")
     assert resp.status_code == 404, resp.text
     assert resp.json()["detail"] == "QR code not found"
+
+
+# ── Direct-start (walk-in) session test ──────────────────────────────────────
+
+DIRECT_START_QR_CODE_ID = 1  # must match frontend qrService.ts constant
+
+
+def test_direct_start_creates_session_via_walkin_qr(client, db_session):
+    """The homepage 'Start assessment' and scan-page 'Continue without
+    scanning' buttons route through /session/1 — the well-known walk-in
+    QR code seeded by the Alembic migration.  This test proves the
+    backend creates a real session row when that QR code ID is used,
+    exactly as it does for any other active QR code.
+    """
+    # Seed the walk-in QR code (mirrors the Alembic migration)
+    walkin_qr = QRCode(
+        qr_code_id=DIRECT_START_QR_CODE_ID,
+        location_name="Direct Start (Walk-in)",
+        status=QRStatusEnum.active,
+    )
+    db_session.merge(walkin_qr)  # merge = INSERT or UPDATE (idempotent)
+    db_session.commit()
+
+    # Count sessions before
+    before = db_session.query(SessionModel).count()
+
+    resp = client.get(f"/api/v1/qr/{DIRECT_START_QR_CODE_ID}/session")
+    assert resp.status_code == 201, resp.text
+    body = resp.json()
+    assert body["qr_code_id"] == DIRECT_START_QR_CODE_ID
+
+    # Count sessions after — must be exactly one more
+    after = db_session.query(SessionModel).count()
+    assert after == before + 1, (
+        f"Expected session count to increase by 1; before={before}, after={after}"
+    )

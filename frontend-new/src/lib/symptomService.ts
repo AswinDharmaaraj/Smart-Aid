@@ -3,6 +3,13 @@ import { apiRequest } from "./api"
 export interface SymptomInputPayload {
   raw_text: string
   category?: string
+  conscious?: string
+  breathing?: string
+  bleeding?: string
+  duration?: string
+  age?: string | number
+  sex?: string
+  conditions?: string[]
 }
 
 export interface SymptomInputResponse {

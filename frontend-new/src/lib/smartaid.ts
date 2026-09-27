@@ -150,6 +150,7 @@ export type AssessmentInput = {
   emergencyId: string | null;
   symptoms: string;
   age: string;
+  sex: "Male" | "Female" | "Other" | "Prefer not to say" | "";
   conscious: "yes" | "no" | "unsure";
   breathing: "normal" | "difficult" | "none";
   bleeding: "none" | "minor" | "severe";
@@ -169,6 +170,7 @@ export const DEFAULT_INPUT: AssessmentInput = {
   emergencyId: null,
   symptoms: "",
   age: "",
+  sex: "",
   conscious: "yes",
   breathing: "normal",
   bleeding: "none",

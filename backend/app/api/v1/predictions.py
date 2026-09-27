@@ -37,4 +37,5 @@ def predict(session_id: int, db: DBSession = Depends(get_db)):
     db.add(prediction)
     db.commit()
     db.refresh(prediction)
+    prediction.vitals_estimated = result.get("vitals_estimated", True)
     return prediction

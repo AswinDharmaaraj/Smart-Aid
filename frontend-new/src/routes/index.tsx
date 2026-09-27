@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Brain, FileText, ScanLine, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EMERGENCY_TYPES } from "@/lib/smartaid";
+import { DIRECT_START_QR_CODE_ID } from "@/lib/qrService";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -52,7 +53,7 @@ function Home() {
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link to="/assessment">
+                <Link to={`/session/${DIRECT_START_QR_CODE_ID}`}>
                   Start assessment <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
               </Button>

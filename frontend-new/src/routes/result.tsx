@@ -37,10 +37,17 @@ function ResultPage() {
   const critical = result.severity === "Critical" || result.severity === "Urgent";
 
   return (
-    <div className="container-flow py-10 md:py-14">
+    <div className="container-flow py-10 md:py-14" data-severity={result.severity.toLowerCase()}>
       <StepProgress current={2} />
 
-      <section className="mt-8 rounded-2xl border border-border bg-card px-6 py-7 shadow-sm rise">
+      <section
+        className="mt-8 rounded-2xl border px-6 py-7 shadow-sm rise transition-all duration-300"
+        style={{
+          backgroundColor: "var(--severity-bg, var(--color-card))",
+          borderColor: "var(--severity-border, var(--color-border))",
+          boxShadow: "0 8px 30px -4px var(--severity-glow, transparent), var(--shadow-soft)",
+        }}
+      >
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-3">
             <SeverityBadge level={result.severity} className="self-start" />
