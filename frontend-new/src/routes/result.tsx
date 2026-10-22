@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Info, Phone, RotateCcw } from "lucide-react";
+import { Info, Phone } from "lucide-react";
 import { StepProgress } from "@/components/step-progress";
 import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/severity-badge";
@@ -56,9 +56,17 @@ function ResultPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div className="rounded-2xl border border-border bg-surface p-5">
-              <p className="text-sm font-semibold text-muted-foreground">Model confidence</p>
-              <p className="mt-2 text-3xl font-semibold text-foreground">{result.confidence}%</p>
+            <div>
+              <div className="rounded-2xl border border-border bg-surface p-5">
+                <p className="text-sm font-semibold text-muted-foreground">Model confidence</p>
+                <p className="mt-2 text-3xl font-semibold text-foreground">{result.confidence}%</p>
+              </div>
+              {result.vitalsEstimated && (
+                <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Info className="size-3.5 shrink-0" aria-hidden="true" />
+                  Vital signs were not measured — AI used baseline estimates.
+                </p>
+              )}
             </div>
             {critical ? (
               <Button asChild size="lg" className="bg-critical text-critical-foreground hover:bg-critical/90">

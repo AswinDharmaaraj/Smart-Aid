@@ -78,6 +78,7 @@ const matchedType =
             confidence: Math.round(prediction.confidence_score * 100),
             emergency: matchedType,
             extractedSymptoms: extractSymptoms(session.input.symptoms),
+            vitalsEstimated: prediction.vitals_estimated ?? true,
             factors: [
               {
                 label: prediction.emergency_type ?? "General assessment",
