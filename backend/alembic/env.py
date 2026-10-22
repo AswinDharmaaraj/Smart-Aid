@@ -14,7 +14,7 @@ sys.path.append(os.getcwd())
 
 from app.core.config import settings
 from app.db.base import Base
-from app.models import user, qr_code, session, symptom_input, severity_prediction
+from app.models import user, qr_code, session, symptom_input, severity_prediction, feedback, notification
 
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 # Interpret the config file for Python logging.

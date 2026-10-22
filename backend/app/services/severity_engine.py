@@ -62,6 +62,19 @@ def _load_artifacts():
     return _PIPELINE, _LABEL_ENCODER
 
 
+def check_model_readiness() -> tuple[bool, str]:
+    """Verify that the XGBoost pipeline and label encoder artifacts are loaded or loadable."""
+    global _PIPELINE, _LABEL_ENCODER
+    try:
+        _load_artifacts()
+        if _PIPELINE is not None and _LABEL_ENCODER is not None:
+            return True, "ready"
+        return False, "artifacts_missing"
+    except Exception as exc:
+        logger.warning("Severity model readiness check failed: %s", exc)
+        return False, "unavailable"
+
+
 # ── Feature definitions (20 features — must match training pipeline exactly) ────
 # Vitals (heart_rate_bpm, temperature_c, spo2_percent) are excluded (Variant B).
 # The app never collects them, so they caused systematic under-triage bias.

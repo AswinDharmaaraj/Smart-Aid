@@ -9,6 +9,7 @@ from app.models.qr_code import QRCode, QRStatusEnum
 from app.models.session import Session as SessionModel
 from app.models.user import User
 from app.schemas.qr_code import QRCodeCreate, QRCodeResponse, SessionResponse
+from app.core.config import settings
 from app.api.v1.deps import require_admin, get_current_user_optional
 
 router = APIRouter(prefix="/qr", tags=["qr"])
@@ -36,7 +37,8 @@ def get_qr_image(qr_code_id: int, db: DBSession = Depends(get_db)):
     if not qr_code:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="QR code not found")
 
-    scan_url = "https://corny-marxism-headed.ngrok-free.dev/session/" + str(qr_code_id)
+    base_url = settings.APP_BASE_URL.rstrip("/")
+    scan_url = f"{base_url}/session/{qr_code_id}"
     img = qrcode.make(scan_url)
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")

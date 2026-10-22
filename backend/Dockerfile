@@ -1,35 +1,59 @@
-# backend/Dockerfile
-# Multi‑stage Dockerfile for the FastAPI backend
-# -------------------------------------------------
-# Stage 1 – build & install dependencies using uv (fast Python package manager)
+# SmartAid AI — Backend Dockerfile
+# Production-ready multi-stage container build for FastAPI + XGBoost Triage Engine
+
+# ── Stage 1: Build Dependencies ───────────────────────────────────────────────
 FROM python:3.12-slim AS builder
+
 WORKDIR /app
 
-# Install build tools needed for some wheels (gcc, make, etc.)
-RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
+# Install system build dependencies required for compiling packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install uv (fast, deterministic package manager)
-RUN pip install --no-cache-dir uv
+# Install Python dependencies into /install prefix
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# Copy lock files first to leverage Docker caching
-COPY backend/pyproject.toml backend/uv.lock ./
-# Install exact dependencies
-RUN uv pip install --no-cache-dir -r uv.lock
-
-# Copy the source code
-COPY backend/ .
-
-# Stage 2 – runtime image
+# ── Stage 2: Runtime Image ────────────────────────────────────────────────────
 FROM python:3.12-slim AS runtime
+
 WORKDIR /app
 
-# Copy only the installed environment from builder (no build tools)
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /app /app
+# Install runtime PostgreSQL client library and curl for health checks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Expose the port (host will set $PORT env var on most platforms)
-ENV PORT=8000
+# Create a non-root system user for security compliance
+RUN groupadd -r smartaid && useradd -r -g smartaid -d /app -s /sbin/nologin smartaid
+
+# Copy pre-built Python dependencies from builder
+COPY --from=builder /install /usr/local
+
+# Copy application source code and runtime artifacts
+COPY alembic.ini ./
+COPY alembic/ ./alembic/
+COPY app/ ./app/
+
+# Set ownership to non-root user
+RUN chown -R smartaid:smartaid /app
+
+# Switch to non-root user
+USER smartaid
+
+# Configure runtime environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=8000
+
+# Container liveness health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8000/health/live || exit 1
+
 EXPOSE 8000
 
-# Run the FastAPI app with uvicorn. 0.0.0.0 makes it reachable from outside the container.
+# Launch application with uvicorn
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

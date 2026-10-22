@@ -27,6 +27,7 @@ import {
   getIncidentReport,
   type IncidentReportResponse,
 } from "@/lib/reportService";
+import { FeedbackForm } from "@/components/feedback-form";
 
 type ReportSearch = { sessionId?: number | undefined };
 
@@ -492,8 +493,15 @@ function ReportPage() {
         {copied ? "Report copied to clipboard." : ""}
       </p>
 
+      {/* ── User First Aid Experience Feedback ─────────────────────────── */}
+      <div className="no-print mt-8">
+        <FeedbackForm
+          sessionId={sessionId || backendReport?.session_id || getBackendSessionId() || null}
+        />
+      </div>
+
       {/* ── navigation ─────────────────────────────────────────────────── */}
-      <div className="no-print mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="no-print mt-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Button asChild size="lg" className="w-full sm:w-auto">
           <Link to="/hospitals">Nearby hospitals</Link>
         </Button>

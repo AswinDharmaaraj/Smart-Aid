@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment and sensitive local files
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Temporary / scratch directories
+scratch/
+backend/scripts/*.joblib
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / Frontend build artifacts (handled in frontend-new/.gitignore as well)
+frontend-new/node_modules/
+frontend-new/dist/
+frontend-new/.output/
+frontend-new/.nitro/
+
+# Operating system / IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
