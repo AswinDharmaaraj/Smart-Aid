@@ -1,8 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { ArrowRight, Phone, PencilLine } from "lucide-react";
 import { EMERGENCY_TYPES } from "@/lib/smartaid";
 import { StepProgress } from "@/components/step-progress";
 import { Button } from "@/components/ui/button";
+import { startSession, DIRECT_START_QR_CODE_ID } from "@/lib/qrService";
+import { getBackendSessionId, setBackendSessionId } from "@/lib/backendSession";
+import { getAdminToken } from "@/lib/adminAuth";
 
 export const Route = createFileRoute("/assessment")({
   head: () => ({
@@ -18,6 +22,22 @@ export const Route = createFileRoute("/assessment")({
 
 function AssessmentPage() {
   const navigate = useNavigate();
+  const initRef = useRef(false);
+
+  useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+    if (!getBackendSessionId()) {
+      const token = getAdminToken();
+      startSession(DIRECT_START_QR_CODE_ID, token)
+        .then((session) => {
+          setBackendSessionId(session.session_id);
+        })
+        .catch((err) => {
+          console.warn("Direct assessment auto-session initialization deferred:", err);
+        });
+    }
+  }, []);
 
   return (
     <div className="container-flow py-10 md:py-14">

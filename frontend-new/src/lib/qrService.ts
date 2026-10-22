@@ -12,12 +12,20 @@ export const DIRECT_START_QR_CODE_ID = 1
 export interface SessionResponse {
   session_id: number
   qr_code_id: number
+  user_id?: number | null
   network_mode: string
   started_at: string
 }
 
-export function startSession(qrCodeId: number): Promise<SessionResponse> {
-  return apiRequest<SessionResponse>(`/qr/${qrCodeId}/session`)
+export function startSession(qrCodeId: number, token?: string | null): Promise<SessionResponse> {
+  return apiRequest<SessionResponse>(`/qr/${qrCodeId}/session`, { token })
+}
+
+export function claimSession(sessionId: number, token?: string | null): Promise<SessionResponse> {
+  return apiRequest<SessionResponse>(`/sessions/${sessionId}/claim`, {
+    method: "POST",
+    token,
+  })
 }
 
 export function updateNetworkMode(sessionId: number, mode: "online" | "offline"): Promise<SessionResponse> {

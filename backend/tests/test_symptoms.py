@@ -220,3 +220,179 @@ def test_direct_start_creates_session_via_walkin_qr(client, db_session):
     assert after == before + 1, (
         f"Expected session count to increase by 1; before={before}, after={after}"
     )
+
+
+# ==============================================================================
+# SPRINT 5 REGRESSION: AUTHENTICATED SESSION ASSOCIATION & HISTORY
+# ==============================================================================
+def test_authenticated_start_session_associates_user_id(client, db_session):
+    """When a signed-in user starts a session, user_id is automatically associated."""
+    from app.models.user import User, RoleEnum
+    from app.core.security import create_access_token, hash_password
+
+    user = User(
+        email="history_user@example.com",
+        password_hash=hash_password("password123"),
+        full_name="History User",
+        role=RoleEnum.user,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    token = create_access_token(data={"sub": user.email})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    qr = QRCode(location_name="Auth Station", status=QRStatusEnum.active)
+    db_session.add(qr)
+    db_session.commit()
+    db_session.refresh(qr)
+
+    res = client.get(f"/api/v1/qr/{qr.qr_code_id}/session", headers=headers)
+    assert res.status_code == 201
+    session_id = res.json()["session_id"]
+
+    db_sess = db_session.query(SessionModel).filter(SessionModel.session_id == session_id).first()
+    assert db_sess.user_id == user.user_id
+
+
+def test_authenticated_symptom_submission_links_guest_session(client, db_session):
+    """If a session starts as guest, submitting symptoms with auth token claims it."""
+    from app.models.user import User, RoleEnum
+    from app.core.security import create_access_token, hash_password
+
+    user = User(
+        email="symptom_user@example.com",
+        password_hash=hash_password("password123"),
+        full_name="Symptom User",
+        role=RoleEnum.user,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    token = create_access_token(data={"sub": user.email})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    qr = QRCode(location_name="Guest Station", status=QRStatusEnum.active)
+    db_session.add(qr)
+    db_session.commit()
+    db_session.refresh(qr)
+
+    # Start unauthenticated (guest)
+    res_start = client.get(f"/api/v1/qr/{qr.qr_code_id}/session")
+    assert res_start.status_code == 201
+    session_id = res_start.json()["session_id"]
+
+    # Submit symptoms with authentication
+    res_symptom = client.post(
+        f"/api/v1/sessions/{session_id}/symptoms",
+        json={"raw_text": "Severe chest pain and dizziness", "category": "Chest pain / Heart attack"},
+        headers=headers,
+    )
+    assert res_symptom.status_code == 201
+
+    db_sess = db_session.query(SessionModel).filter(SessionModel.session_id == session_id).first()
+    assert db_sess.user_id == user.user_id
+
+
+def test_claim_session_endpoint_success_and_protection(client, db_session):
+    """Test POST /api/v1/sessions/{session_id}/claim links unowned session and protects owned ones."""
+    from app.models.user import User, RoleEnum
+    from app.core.security import create_access_token, hash_password
+
+    user1 = User(
+        email="owner1@example.com",
+        password_hash=hash_password("pass1"),
+        full_name="Owner One",
+        role=RoleEnum.user,
+    )
+    user2 = User(
+        email="attacker@example.com",
+        password_hash=hash_password("pass2"),
+        full_name="Attacker",
+        role=RoleEnum.user,
+    )
+    db_session.add_all([user1, user2])
+    db_session.commit()
+    db_session.refresh(user1)
+    db_session.refresh(user2)
+
+    token1 = create_access_token(data={"sub": user1.email})
+    token2 = create_access_token(data={"sub": user2.email})
+
+    qr = QRCode(location_name="Claim Station", status=QRStatusEnum.active)
+    db_session.add(qr)
+    db_session.commit()
+    db_session.refresh(qr)
+
+    # 1. Create guest session
+    res_start = client.get(f"/api/v1/qr/{qr.qr_code_id}/session")
+    session_id = res_start.json()["session_id"]
+
+    # 2. User 1 claims guest session
+    res_claim = client.post(
+        f"/api/v1/sessions/{session_id}/claim",
+        headers={"Authorization": f"Bearer {token1}"},
+    )
+    assert res_claim.status_code == 200
+    db_sess = db_session.query(SessionModel).filter(SessionModel.session_id == session_id).first()
+    assert db_sess.user_id == user1.user_id
+
+    # 3. User 2 attempts to hijack User 1's session -> 403 Forbidden
+    res_hijack = client.post(
+        f"/api/v1/sessions/{session_id}/claim",
+        headers={"Authorization": f"Bearer {token2}"},
+    )
+    assert res_hijack.status_code == 403
+    assert "owned by another user" in res_hijack.json()["detail"].lower()
+
+
+def test_history_shows_completed_assessment_for_authenticated_user(client, db_session):
+    """An assessment completed by an authenticated user shows up on GET /api/v1/users/me/history."""
+    from app.models.user import User, RoleEnum
+    from app.core.security import create_access_token, hash_password
+
+    user = User(
+        email="patient@example.com",
+        password_hash=hash_password("password123"),
+        full_name="Patient Zero",
+        role=RoleEnum.user,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    token = create_access_token(data={"sub": user.email})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    qr = QRCode(location_name="Emergency Ward", status=QRStatusEnum.active)
+    db_session.add(qr)
+    db_session.commit()
+    db_session.refresh(qr)
+
+    # Complete full assessment with token
+    res_sess = client.get(f"/api/v1/qr/{qr.qr_code_id}/session", headers=headers)
+    session_id = res_sess.json()["session_id"]
+
+    client.post(
+        f"/api/v1/sessions/{session_id}/symptoms",
+        json={"raw_text": "Deep wound with arterial spurting", "category": "Severe bleeding"},
+        headers=headers,
+    )
+
+    client.post(
+        f"/api/v1/sessions/{session_id}/predict",
+        headers=headers,
+    )
+
+    # Check emergency history
+    res_history = client.get("/api/v1/users/me/history", headers=headers)
+    assert res_history.status_code == 200
+    history = res_history.json()
+    assert len(history) == 1
+    entry = history[0]
+    assert entry["session_id"] == session_id
+    assert entry["category"] == "Severe bleeding"
+    assert entry["severity_level"] is not None
+    assert entry["confidence_score"] is not None

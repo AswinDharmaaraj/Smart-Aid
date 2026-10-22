@@ -28,11 +28,11 @@ export interface UserResponse {
 }
 
 export function register(payload: RegisterPayload): Promise<UserResponse> {
-    return apiRequest<UserResponse>("/auth/register", { method: "POST", body: payload })
+    return apiRequest<UserResponse>("/auth/register", { method: "POST", body: payload, token: null })
 }
 
 export function login(payload: LoginPayload): Promise<TokenResponse> {
-    return apiRequest<TokenResponse>("/auth/login", { method: "POST", body: payload })
+    return apiRequest<TokenResponse>("/auth/login", { method: "POST", body: payload, token: null })
 }
 
 export function getMe(token: string): Promise<UserResponse> {
