@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { ArrowRight, Phone, PencilLine } from "lucide-react";
-import { EMERGENCY_TYPES } from "@/lib/smartaid";
+import { EMERGENCY_TYPES, clearSession, loadSession } from "@/lib/smartaid";
 import { StepProgress } from "@/components/step-progress";
 import { Button } from "@/components/ui/button";
 import { startSession, DIRECT_START_QR_CODE_ID } from "@/lib/qrService";
-import { getBackendSessionId, setBackendSessionId } from "@/lib/backendSession";
+import { clearBackendSessionId, getBackendSessionId, setBackendSessionId } from "@/lib/backendSession";
 import { getAdminToken } from "@/lib/adminAuth";
 
 export const Route = createFileRoute("/assessment")({
@@ -27,6 +27,14 @@ function AssessmentPage() {
   useEffect(() => {
     if (initRef.current) return;
     initRef.current = true;
+
+    // Clear stale completed assessment and session ID so a fresh session begins
+    const existing = loadSession();
+    if (existing?.result) {
+      clearSession();
+      clearBackendSessionId();
+    }
+
     if (!getBackendSessionId()) {
       const token = getAdminToken();
       startSession(DIRECT_START_QR_CODE_ID, token)
@@ -64,7 +72,7 @@ function AssessmentPage() {
         </article>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          {EMERGENCY_TYPES.map((e) => (
+          {EMERGENCY_TYPES.filter((e) => e.id !== "general").map((e) => (
             <button
               key={e.id}
               type="button"

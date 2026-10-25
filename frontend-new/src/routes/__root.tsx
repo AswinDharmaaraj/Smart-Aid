@@ -12,7 +12,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
 
@@ -41,9 +40,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -84,16 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "SmartAid AI — QR-Based First Aid Decision Support" },
       { name: "description", content: "Scan a QR code and get AI-assessed emergency severity, personalised first aid steps, explainable recommendations and a shareable emergency report." },
-      { name: "author", content: "Lovable" },
+      { name: "author", content: "SmartAid AI" },
       { property: "og:title", content: "SmartAid AI — QR-Based First Aid Decision Support" },
       { property: "og:description", content: "Scan a QR code and get AI-assessed emergency severity, personalised first aid steps, explainable recommendations and a shareable emergency report." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "SmartAid AI — QR-Based First Aid Decision Support" },
       { name: "twitter:description", content: "Scan a QR code and get AI-assessed emergency severity, personalised first aid steps, explainable recommendations and a shareable emergency report." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/61f6f9c730d29137d4899edb8671d6ed/id-preview-8dd9b54c--807139a5-e07b-4c0b-8e9f-5a2f79a95b4b.lovable.app-1786080658316.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/61f6f9c730d29137d4899edb8671d6ed/id-preview-8dd9b54c--807139a5-e07b-4c0b-8e9f-5a2f79a95b4b.lovable.app-1786080658316.png" },
     ],
     links: [
       {

@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 _BASE_DIR      = Path(__file__).resolve().parent.parent       # app/
 _MODEL_PATH    = _BASE_DIR / "ml_models" / "severity_model_pipeline.joblib"
 _ENCODER_PATH  = _BASE_DIR / "ml_models" / "label_encoder.joblib"
-_ENCODER_ALT   = _BASE_DIR / "ml_models" / "label_encoder .joblib"
 
 # ── Lazy-loaded pipeline and label encoder ─────────────────────────────────────
 _PIPELINE = None
@@ -51,13 +50,12 @@ def _load_artifacts():
         logger.info("SmartAid XGBoost pipeline loaded from %s", _MODEL_PATH)
 
     if _LABEL_ENCODER is None:
-        encoder_path = _ENCODER_PATH if _ENCODER_PATH.exists() else _ENCODER_ALT
-        if not encoder_path.exists():
+        if not _ENCODER_PATH.exists():
             raise FileNotFoundError(
                 f"Label encoder artifact not found at {_ENCODER_PATH}."
             )
-        _LABEL_ENCODER = joblib.load(encoder_path)
-        logger.info("SmartAid LabelEncoder loaded from %s", encoder_path)
+        _LABEL_ENCODER = joblib.load(_ENCODER_PATH)
+        logger.info("SmartAid LabelEncoder loaded from %s", _ENCODER_PATH)
 
     return _PIPELINE, _LABEL_ENCODER
 

@@ -9,7 +9,6 @@ export default defineConfig({
           changeOrigin: true,
         },
       },
-      allowedHosts: ["corny-marxism-headed.ngrok-free.dev"],
     },
   },
 

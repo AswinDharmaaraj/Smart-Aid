@@ -113,7 +113,11 @@ function GuidancePage() {
     backendGuide?.call_emergency ??
     (result.severity === "Critical" || result.severity === "Urgent");
 
-  const currentStepData = steps[currentStep] || steps[0];
+  const fallbackStep = {
+    title: "Follow First-Aid Protocol",
+    detail: "Apply standard emergency precautions.",
+  };
+  const currentStepData = steps[currentStep] ?? steps[0] ?? fallbackStep;
   const totalSteps = steps.length;
   const isCurrentCompleted = done.includes(currentStep);
   const progressPercent = Math.round(((currentStep + 1) / totalSteps) * 100);
@@ -165,7 +169,8 @@ function GuidancePage() {
       .map((s, i) => `Step ${i + 1}. ${s.title}. ${s.detail}`)
       .join(". Next step: ");
     const utterance = new SpeechSynthesisUtterance(
-      `First aid action plan for ${backendGuide?.emergency_category ?? emergency.label}. ` + fullScript
+      `First aid action plan for ${backendGuide?.emergency_category ?? emergency.label}. ` +
+        fullScript,
     );
     utterance.rate = 0.95;
 
@@ -186,7 +191,7 @@ function GuidancePage() {
   // ── Step Navigation Handlers ──────────────────────────────────────────────────
   const toggleComplete = (stepIndex: number = currentStep) => {
     setDone((prev) =>
-      prev.includes(stepIndex) ? prev.filter((idx) => idx !== stepIndex) : [...prev, stepIndex]
+      prev.includes(stepIndex) ? prev.filter((idx) => idx !== stepIndex) : [...prev, stepIndex],
     );
   };
 
@@ -297,8 +302,8 @@ function GuidancePage() {
             </p>
 
             <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              Follow these verified steps calmly, one at a time, while arranging professional medical
-              help. Stay with the person and keep them reassured.
+              Follow these verified steps calmly, one at a time, while arranging professional
+              medical help. Stay with the person and keep them reassured.
             </p>
           </div>
 
@@ -333,7 +338,10 @@ function GuidancePage() {
                 >
                   {isSpeaking && speechMode === "step" ? (
                     <>
-                      <VolumeX className="size-4 shrink-0 text-primary-foreground" aria-hidden="true" />
+                      <VolumeX
+                        className="size-4 shrink-0 text-primary-foreground"
+                        aria-hidden="true"
+                      />
                       <span>Stop Reading</span>
                     </>
                   ) : (
@@ -359,7 +367,10 @@ function GuidancePage() {
                     </>
                   ) : (
                     <>
-                      <Volume2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <Volume2
+                        className="size-4 shrink-0 text-muted-foreground"
+                        aria-hidden="true"
+                      />
                       <span>Read Full Plan</span>
                     </>
                   )}
@@ -367,7 +378,10 @@ function GuidancePage() {
               </div>
 
               {isSpeaking && (
-                <p className="mt-2 text-center text-[11px] text-muted-foreground" aria-live="polite">
+                <p
+                  className="mt-2 text-center text-[11px] text-muted-foreground"
+                  aria-live="polite"
+                >
                   {speechMode === "all" ? "Playing all steps" : `Reading step ${currentStep + 1}`}
                 </p>
               )}
@@ -380,7 +394,8 @@ function GuidancePage() {
           <div className="flex items-center gap-2 min-w-0">
             <Info className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
             <span className="leading-relaxed">
-              Decision-support recommendation based on reported symptoms. <strong>Not a confirmed clinical diagnosis.</strong>
+              Decision-support recommendation based on reported symptoms.{" "}
+              <strong>Not a confirmed clinical diagnosis.</strong>
             </span>
           </div>
 
@@ -438,7 +453,11 @@ function GuidancePage() {
               </div>
 
               {/* Clickable Step Pills */}
-              <div className="mt-3.5 flex flex-wrap gap-1.5" role="tablist" aria-label="Step selector">
+              <div
+                className="mt-3.5 flex flex-wrap gap-1.5"
+                role="tablist"
+                aria-label="Step selector"
+              >
                 {steps.map((s, idx) => {
                   const isDone = done.includes(idx);
                   const isActive = idx === currentStep;
@@ -455,8 +474,8 @@ function GuidancePage() {
                         isActive
                           ? "border-2 border-primary bg-primary text-primary-foreground shadow-xs"
                           : isDone
-                          ? "border border-success/40 bg-success-soft text-success hover:bg-success/20"
-                          : "border border-border bg-surface text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            ? "border border-success/40 bg-success-soft text-success hover:bg-success/20"
+                            : "border border-border bg-surface text-muted-foreground hover:bg-secondary hover:text-foreground"
                       }`}
                     >
                       {isDone ? (
@@ -574,7 +593,9 @@ function GuidancePage() {
             <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs">
               <h3 className="text-sm font-semibold text-foreground flex items-center justify-between gap-2">
                 <span>All Protocol Steps</span>
-                <span className="text-xs font-normal text-muted-foreground">Click any step to inspect</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  Click any step to inspect
+                </span>
               </h3>
 
               <ol className="mt-4 space-y-2.5" aria-label="First aid sequence steps">
@@ -590,8 +611,8 @@ function GuidancePage() {
                         isCurrent
                           ? "border-primary bg-primary-soft/40 shadow-xs"
                           : isDone
-                          ? "border-success/30 bg-success-soft/20 text-muted-foreground"
-                          : "border-border/70 bg-surface/50 hover:bg-surface"
+                            ? "border-success/30 bg-success-soft/20 text-muted-foreground"
+                            : "border-border/70 bg-surface/50 hover:bg-surface"
                       }`}
                     >
                       <button
@@ -605,7 +626,11 @@ function GuidancePage() {
                             ? "border-success bg-success text-success-foreground"
                             : "border-border bg-card text-transparent hover:border-primary"
                         }`}
-                        aria-label={isDone ? `Mark step ${idx + 1} incomplete` : `Mark step ${idx + 1} complete`}
+                        aria-label={
+                          isDone
+                            ? `Mark step ${idx + 1} incomplete`
+                            : `Mark step ${idx + 1} complete`
+                        }
                       >
                         <Check className="size-3.5 text-white" aria-hidden="true" />
                       </button>
@@ -616,13 +641,15 @@ function GuidancePage() {
                             isCurrent
                               ? "text-primary font-semibold"
                               : isDone
-                              ? "line-through text-muted-foreground"
-                              : "text-foreground"
+                                ? "line-through text-muted-foreground"
+                                : "text-foreground"
                           }`}
                         >
                           Step {idx + 1}: {s.title}
                         </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2 break-words">{s.detail}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2 break-words">
+                          {s.detail}
+                        </p>
                       </div>
 
                       {isCurrent && (
@@ -667,7 +694,9 @@ function GuidancePage() {
                   <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-critical/20 text-critical">
                     <AlertTriangle className="size-4" aria-hidden="true" />
                   </span>
-                  <h3 className="text-base font-semibold text-critical">What to Avoid (Contraindications)</h3>
+                  <h3 className="text-base font-semibold text-critical">
+                    What to Avoid (Contraindications)
+                  </h3>
                 </div>
 
                 <ul className="mt-4 space-y-2.5 text-sm leading-relaxed text-foreground/90">
@@ -688,16 +717,25 @@ function GuidancePage() {
                   <Building2 className="size-4" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold text-foreground">Need Hospital Transport?</h3>
-                  <p className="text-xs text-muted-foreground">Find nearest verified emergency wards.</p>
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Need Hospital Transport?
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Find nearest verified emergency wards.
+                  </p>
                 </div>
               </div>
 
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                Search emergency rooms and medical facilities within driving distance with Google Maps directions.
+                Search emergency rooms and medical facilities within driving distance with Google
+                Maps directions.
               </p>
 
-              <Button asChild size="default" className="mt-4 w-full h-11 rounded-xl text-sm font-semibold gap-2">
+              <Button
+                asChild
+                size="default"
+                className="mt-4 w-full h-11 rounded-xl text-sm font-semibold gap-2"
+              >
                 <Link to="/hospitals">
                   <Building2 className="size-4 shrink-0" aria-hidden="true" />
                   <span>Find Nearby Hospitals</span>
@@ -727,7 +765,11 @@ function GuidancePage() {
             </Link>
           </Button>
 
-          <Button asChild variant="outline" className="h-11 rounded-xl px-5 text-sm gap-2 w-full sm:w-auto bg-card">
+          <Button
+            asChild
+            variant="outline"
+            className="h-11 rounded-xl px-5 text-sm gap-2 w-full sm:w-auto bg-card"
+          >
             <Link to="/explain">
               <HelpCircle className="size-4 shrink-0" aria-hidden="true" />
               <span>Why this advice?</span>

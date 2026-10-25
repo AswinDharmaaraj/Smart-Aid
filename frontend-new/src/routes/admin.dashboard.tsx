@@ -126,7 +126,10 @@ function AdminDashboardPage() {
   // QR management
   const [promotingId, setPromotingId] = useState<number | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
-  const [viewingQr, setViewingQr] = useState<{ location_name: string; image_base64: string } | null>(null);
+  const [viewingQr, setViewingQr] = useState<{
+    location_name: string;
+    image_base64: string;
+  } | null>(null);
   const [loadingQrImgId, setLoadingQrImgId] = useState<number | null>(null);
 
   // Create QR form state (admin only)
@@ -345,8 +348,12 @@ function AdminDashboardPage() {
   // Calculated or fallback metrics
   const totalUsersCount = stats ? stats.total_users : users.length;
   const totalQrCount = stats ? stats.total_qr_codes : qrCodes.length;
-  const activeQrCount = stats ? stats.active_qr_codes : qrCodes.filter((q) => q.status === "active").length;
-  const inactiveQrCount = stats ? stats.inactive_qr_codes : qrCodes.filter((q) => q.status === "inactive").length;
+  const activeQrCount = stats
+    ? stats.active_qr_codes
+    : qrCodes.filter((q) => q.status === "active").length;
+  const inactiveQrCount = stats
+    ? stats.inactive_qr_codes
+    : qrCodes.filter((q) => q.status === "inactive").length;
   const totalSessionsCount = stats ? stats.total_sessions : 0;
   const totalFeedbackCount = stats ? stats.total_feedback : 0;
   const averageRatingValue = stats ? stats.average_rating : 0.0;
@@ -390,13 +397,22 @@ function AdminDashboardPage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <div style={{ textAlign: "right" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                justifyContent: "flex-end",
+              }}
+            >
               <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--foreground)" }}>
                 {user.full_name}
               </span>
               <RoleBadge role={user.role} />
             </div>
-            <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{user.email}</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
+              {user.email}
+            </div>
           </div>
           <Button
             variant="outline"
@@ -414,7 +430,9 @@ function AdminDashboardPage() {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "2rem 1.5rem" }}>
         {/* ── Page Title ───────────────────────────────────────────────── */}
         <div style={{ marginBottom: "2rem" }}>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--foreground)", margin: 0 }}>
+          <h1
+            style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--foreground)", margin: 0 }}
+          >
             System Administration
           </h1>
           <p style={{ color: "var(--muted-foreground)", marginTop: "0.25rem", fontSize: "0.9rem" }}>
@@ -534,10 +552,23 @@ function AdminDashboardPage() {
         {activeTab === "overview" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             {/* Real Stats Breakdown Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                gap: "1.5rem",
+              }}
+            >
               {/* Severity Breakdown */}
               <div style={cardStyle}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "1rem",
+                  }}
+                >
                   <SectionTitle>Triage Severity Distribution</SectionTitle>
                   <Activity className="size-4 text-muted-foreground" />
                 </div>
@@ -551,19 +582,51 @@ function AdminDashboardPage() {
                       const count = stats.sessions_by_severity[sev] || 0;
                       const total = stats.total_sessions || 1;
                       const pct = Math.round((count / total) * 100);
-                      const style = SEVERITY_COLORS[sev];
+                      const style = SEVERITY_COLORS[sev] ?? {
+                        bg: "#22c55e18",
+                        text: "#16a34a",
+                        bar: "#22c55e",
+                      };
                       return (
                         <div key={sev}>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", marginBottom: "0.25rem" }}>
-                            <span style={{ fontWeight: 600, textTransform: "capitalize", color: style.text }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              fontSize: "0.82rem",
+                              marginBottom: "0.25rem",
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontWeight: 600,
+                                textTransform: "capitalize",
+                                color: style.text,
+                              }}
+                            >
                               {sev}
                             </span>
                             <span style={{ color: "var(--muted-foreground)" }}>
                               {count} sessions ({pct}%)
                             </span>
                           </div>
-                          <div style={{ height: "6px", width: "100%", background: "var(--secondary)", borderRadius: "999px", overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${pct}%`, background: style.bar, borderRadius: "999px" }} />
+                          <div
+                            style={{
+                              height: "6px",
+                              width: "100%",
+                              background: "var(--secondary)",
+                              borderRadius: "999px",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                height: "100%",
+                                width: `${pct}%`,
+                                background: style.bar,
+                                borderRadius: "999px",
+                              }}
+                            />
                           </div>
                         </div>
                       );
@@ -574,7 +637,14 @@ function AdminDashboardPage() {
 
               {/* Emergency Category Distribution */}
               <div style={cardStyle}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "1rem",
+                  }}
+                >
                   <SectionTitle>Emergency Categories</SectionTitle>
                   <Layers className="size-4 text-muted-foreground" />
                 </div>
@@ -618,7 +688,14 @@ function AdminDashboardPage() {
 
               {/* Feedback by Category */}
               <div style={cardStyle}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "1rem",
+                  }}
+                >
                   <SectionTitle>Feedback Submissions by Area</SectionTitle>
                   <MessageSquare className="size-4 text-muted-foreground" />
                 </div>
@@ -633,7 +710,13 @@ function AdminDashboardPage() {
                         <span style={{ fontSize: "0.82rem", fontWeight: 500 }}>
                           {CATEGORY_LABELS[catKey] || catKey}
                         </span>
-                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--foreground)" }}>
+                        <span
+                          style={{
+                            fontSize: "0.82rem",
+                            fontWeight: 700,
+                            color: "var(--foreground)",
+                          }}
+                        >
                           {count}
                         </span>
                       </div>
@@ -653,11 +736,20 @@ function AdminDashboardPage() {
                 ) : qrCodes.length === 0 ? (
                   <EmptyState text="No QR codes yet." />
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "1rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.6rem",
+                      marginTop: "1rem",
+                    }}
+                  >
                     {qrCodes.slice(0, 5).map((q) => (
                       <div key={q.qr_code_id} style={rowStyle}>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>{q.location_name}</div>
+                          <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>
+                            {q.location_name}
+                          </div>
                           <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
                             #{q.qr_code_id} · {fmtDate(q.installed_at)}
                           </div>
@@ -677,12 +769,21 @@ function AdminDashboardPage() {
                 ) : users.length === 0 ? (
                   <EmptyState text="No users yet." />
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "1rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.6rem",
+                      marginTop: "1rem",
+                    }}
+                  >
                     {users.slice(0, 5).map((u) => (
                       <div key={u.user_id} style={rowStyle}>
                         <div>
                           <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>{u.full_name}</div>
-                          <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{u.email}</div>
+                          <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
+                            {u.email}
+                          </div>
                         </div>
                         <RoleBadge role={u.role} />
                       </div>
@@ -700,11 +801,27 @@ function AdminDashboardPage() {
         {activeTab === "feedback" && (
           <div style={cardStyle}>
             {/* Header & Controls */}
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem", marginBottom: "1.25rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "1rem",
+                marginBottom: "1.25rem",
+              }}
+            >
               <div>
                 <SectionTitle>User Feedback & Triage Quality</SectionTitle>
-                <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", margin: "0.25rem 0 0" }}>
-                  Review real user experience reports, first-aid instruction clarity, and record administrator triage notes.
+                <p
+                  style={{
+                    fontSize: "0.8rem",
+                    color: "var(--muted-foreground)",
+                    margin: "0.25rem 0 0",
+                  }}
+                >
+                  Review real user experience reports, first-aid instruction clarity, and record
+                  administrator triage notes.
                 </p>
               </div>
               <Button
@@ -733,7 +850,11 @@ function AdminDashboardPage() {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--muted-foreground)" }}>Status:</span>
+                <span
+                  style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--muted-foreground)" }}
+                >
+                  Status:
+                </span>
                 <select
                   value={filterReviewed}
                   onChange={(e) => {
@@ -749,7 +870,11 @@ function AdminDashboardPage() {
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--muted-foreground)" }}>Category:</span>
+                <span
+                  style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--muted-foreground)" }}
+                >
+                  Category:
+                </span>
                 <select
                   value={filterCategory}
                   onChange={(e) => {
@@ -768,7 +893,11 @@ function AdminDashboardPage() {
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--muted-foreground)" }}>Rating:</span>
+                <span
+                  style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--muted-foreground)" }}
+                >
+                  Rating:
+                </span>
                 <select
                   value={filterRating}
                   onChange={(e) => {
@@ -827,7 +956,16 @@ function AdminDashboardPage() {
                     }}
                   >
                     {/* Top Row: Stars, Category, Review Badge, Date */}
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "0.5rem",
+                        marginBottom: "0.75rem",
+                      }}
+                    >
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                         {/* Rating Stars */}
                         <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
@@ -835,7 +973,9 @@ function AdminDashboardPage() {
                             <Star
                               key={s}
                               className={`size-4 ${
-                                s <= fb.rating ? "text-amber-500 fill-amber-400" : "text-muted-foreground/30"
+                                s <= fb.rating
+                                  ? "text-amber-500 fill-amber-400"
+                                  : "text-muted-foreground/30"
                               }`}
                             />
                           ))}
@@ -867,7 +1007,11 @@ function AdminDashboardPage() {
                             gap: "0.3rem",
                           }}
                         >
-                          {fb.is_reviewed ? <CheckCircle2 className="size-3" /> : <Clock className="size-3" />}
+                          {fb.is_reviewed ? (
+                            <CheckCircle2 className="size-3" />
+                          ) : (
+                            <Clock className="size-3" />
+                          )}
                           {fb.is_reviewed ? "Reviewed" : "Needs Review"}
                         </span>
                       </div>
@@ -878,18 +1022,21 @@ function AdminDashboardPage() {
                     </div>
 
                     {/* Meta chips: Session, User, Email */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "0.5rem",
+                        marginBottom: "0.75rem",
+                      }}
+                    >
                       <span style={chipStyle}>
                         Session: {fb.session_id ? `#${fb.session_id}` : "Walk-in (Direct)"}
                       </span>
                       <span style={chipStyle}>
                         User: {fb.user_id ? `User #${fb.user_id}` : "Anonymous"}
                       </span>
-                      {fb.contact_email && (
-                        <span style={chipStyle}>
-                          Email: {fb.contact_email}
-                        </span>
-                      )}
+                      {fb.contact_email && <span style={chipStyle}>Email: {fb.contact_email}</span>}
                     </div>
 
                     {/* Comments Quote Box */}
@@ -909,7 +1056,17 @@ function AdminDashboardPage() {
                     </div>
 
                     {/* Admin Notes & Action Bar */}
-                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
+                    <div
+                      style={{
+                        borderTop: "1px solid var(--border)",
+                        paddingTop: "0.75rem",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "0.75rem",
+                      }}
+                    >
                       {/* Admin Notes Display / Editor */}
                       <div style={{ flex: 1, minWidth: "250px" }}>
                         {editingNotesId === fb.feedback_id ? (
@@ -939,7 +1096,9 @@ function AdminDashboardPage() {
                                 className="h-7 text-xs gap-1"
                               >
                                 <Check className="size-3" />
-                                <span>{savingNotesId === fb.feedback_id ? "Saving…" : "Save Notes"}</span>
+                                <span>
+                                  {savingNotesId === fb.feedback_id ? "Saving…" : "Save Notes"}
+                                </span>
                               </Button>
                               <Button
                                 size="sm"
@@ -956,10 +1115,24 @@ function AdminDashboardPage() {
                           </div>
                         ) : (
                           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--muted-foreground)" }}>
+                            <span
+                              style={{
+                                fontSize: "0.78rem",
+                                fontWeight: 600,
+                                color: "var(--muted-foreground)",
+                              }}
+                            >
                               Admin Notes:
                             </span>
-                            <span style={{ fontSize: "0.8rem", color: fb.admin_notes ? "var(--foreground)" : "var(--muted-foreground)", fontStyle: fb.admin_notes ? "normal" : "italic" }}>
+                            <span
+                              style={{
+                                fontSize: "0.8rem",
+                                color: fb.admin_notes
+                                  ? "var(--foreground)"
+                                  : "var(--muted-foreground)",
+                                fontStyle: fb.admin_notes ? "normal" : "italic",
+                              }}
+                            >
                               {fb.admin_notes || "None"}
                             </span>
                             <button
@@ -1012,7 +1185,14 @@ function AdminDashboardPage() {
                 ))}
 
                 {/* Pagination Controls */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "0.5rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingTop: "0.5rem",
+                  }}
+                >
                   <Button
                     size="sm"
                     variant="outline"
@@ -1047,10 +1227,23 @@ function AdminDashboardPage() {
            ═══════════════════════════════════════════════════════════════════ */}
         {activeTab === "qr" && (
           <div style={cardStyle}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "1rem",
+              }}
+            >
               <div>
                 <SectionTitle>All QR Codes ({qrCodes.length})</SectionTitle>
-                <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", margin: "0.25rem 0 0" }}>
+                <p
+                  style={{
+                    fontSize: "0.8rem",
+                    color: "var(--muted-foreground)",
+                    margin: "0.25rem 0 0",
+                  }}
+                >
                   {user.role === "admin"
                     ? "Create and manage QR codes for SmartAid locations."
                     : "View-only. An admin must promote you to create or manage QR codes."}
@@ -1097,8 +1290,17 @@ function AdminDashboardPage() {
                     />
                   </div>
                 </div>
-                {createError && <p style={{ color: "var(--destructive)", fontSize: "0.8rem", margin: 0 }}>{createError}</p>}
-                <Button type="submit" size="sm" style={{ width: "fit-content" }} disabled={creating}>
+                {createError && (
+                  <p style={{ color: "var(--destructive)", fontSize: "0.8rem", margin: 0 }}>
+                    {createError}
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  size="sm"
+                  style={{ width: "fit-content" }}
+                  disabled={creating}
+                >
                   {creating ? "Creating…" : "Create QR Code"}
                 </Button>
               </form>
@@ -1107,15 +1309,23 @@ function AdminDashboardPage() {
             {loadingQr ? (
               <LoadingRow />
             ) : qrCodes.length === 0 ? (
-              <EmptyState text={user.role === "admin" ? "No QR codes yet. Create one above." : "No QR codes yet."} />
+              <EmptyState
+                text={
+                  user.role === "admin" ? "No QR codes yet. Create one above." : "No QR codes yet."
+                }
+              />
             ) : (
               <div style={{ overflowX: "auto" }}>
                 <table style={tableStyle}>
                   <thead>
                     <tr>
-                      {["ID", "Location", "Install Site", "Created", "Status", "Action"].map((h) => (
-                        <th key={h} style={thStyle}>{h}</th>
-                      ))}
+                      {["ID", "Location", "Install Site", "Created", "Status", "Action"].map(
+                        (h) => (
+                          <th key={h} style={thStyle}>
+                            {h}
+                          </th>
+                        ),
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -1123,9 +1333,15 @@ function AdminDashboardPage() {
                       <tr key={q.qr_code_id} style={{ borderBottom: "1px solid var(--border)" }}>
                         <td style={tdStyle}>#{q.qr_code_id}</td>
                         <td style={{ ...tdStyle, fontWeight: 600 }}>{q.location_name}</td>
-                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>{q.install_site ?? "—"}</td>
-                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>{fmtDate(q.installed_at)}</td>
-                        <td style={tdStyle}><StatusBadge status={q.status} /></td>
+                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>
+                          {q.install_site ?? "—"}
+                        </td>
+                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>
+                          {fmtDate(q.installed_at)}
+                        </td>
+                        <td style={tdStyle}>
+                          <StatusBadge status={q.status} />
+                        </td>
                         <td style={tdStyle}>
                           <div style={{ display: "flex", gap: "0.5rem" }}>
                             <button
@@ -1165,8 +1381,8 @@ function AdminDashboardPage() {
                                 {togglingId === q.qr_code_id
                                   ? "Updating…"
                                   : q.status === "active"
-                                  ? "Deactivate"
-                                  : "Activate"}
+                                    ? "Deactivate"
+                                    : "Activate"}
                               </button>
                             )}
                           </div>
@@ -1186,7 +1402,13 @@ function AdminDashboardPage() {
         {activeTab === "users" && (
           <div style={cardStyle}>
             <SectionTitle>Registered Users ({users.length})</SectionTitle>
-            <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", margin: "0.25rem 0 1rem" }}>
+            <p
+              style={{
+                fontSize: "0.8rem",
+                color: "var(--muted-foreground)",
+                margin: "0.25rem 0 1rem",
+              }}
+            >
               {user.role === "admin"
                 ? "Promote users to admin to grant system configuration privileges."
                 : "View-only. Administrator privileges are required to promote users."}
@@ -1201,20 +1423,38 @@ function AdminDashboardPage() {
                 <table style={tableStyle}>
                   <thead>
                     <tr>
-                      {["ID", "Full Name", "Email", "Phone", "Role", "Joined", ...(user.role === "admin" ? ["Action"] : [])].map((h) => (
-                        <th key={h} style={thStyle}>{h}</th>
+                      {[
+                        "ID",
+                        "Full Name",
+                        "Email",
+                        "Phone",
+                        "Role",
+                        "Joined",
+                        ...(user.role === "admin" ? ["Action"] : []),
+                      ].map((h) => (
+                        <th key={h} style={thStyle}>
+                          {h}
+                        </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {users.map((u) => (
                       <tr key={u.user_id} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>#{u.user_id}</td>
+                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>
+                          #{u.user_id}
+                        </td>
                         <td style={{ ...tdStyle, fontWeight: 600 }}>{u.full_name}</td>
                         <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>{u.email}</td>
-                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>{u.phone ?? "—"}</td>
-                        <td style={tdStyle}><RoleBadge role={u.role} /></td>
-                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>{fmtDate(u.created_at)}</td>
+                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>
+                          {u.phone ?? "—"}
+                        </td>
+                        <td style={tdStyle}>
+                          <RoleBadge role={u.role} />
+                        </td>
+                        <td style={{ ...tdStyle, color: "var(--muted-foreground)" }}>
+                          {fmtDate(u.created_at)}
+                        </td>
                         {user.role === "admin" && (
                           <td style={tdStyle}>
                             {u.role === "user" ? (
@@ -1238,7 +1478,11 @@ function AdminDashboardPage() {
                                 {promotingId === u.user_id ? "Promoting…" : "Promote to Admin"}
                               </button>
                             ) : (
-                              <span style={{ fontSize: "0.78rem", color: "var(--muted-foreground)" }}>—</span>
+                              <span
+                                style={{ fontSize: "0.78rem", color: "var(--muted-foreground)" }}
+                              >
+                                —
+                              </span>
                             )}
                           </td>
                         )}
@@ -1282,11 +1526,26 @@ function AdminDashboardPage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ marginTop: 0, marginBottom: "1.5rem", color: "var(--foreground)", fontSize: "1.25rem" }}>
+            <h3
+              style={{
+                marginTop: 0,
+                marginBottom: "1.5rem",
+                color: "var(--foreground)",
+                fontSize: "1.25rem",
+              }}
+            >
               QR Code: {viewingQr.location_name}
             </h3>
 
-            <div style={{ padding: "1rem", background: "white", borderRadius: 16, display: "inline-block", marginBottom: "2rem" }}>
+            <div
+              style={{
+                padding: "1rem",
+                background: "white",
+                borderRadius: 16,
+                display: "inline-block",
+                marginBottom: "2rem",
+              }}
+            >
               <img
                 src={`data:image/png;base64,${viewingQr.image_base64}`}
                 alt="QR Code"
@@ -1357,14 +1616,25 @@ function StatCard({
         {icon}
       </div>
       <div>
-        <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--foreground)", lineHeight: 1 }}>
+        <div
+          style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--foreground)", lineHeight: 1 }}
+        >
           {value}
         </div>
-        <div style={{ fontSize: "0.78rem", color: "var(--muted-foreground)", marginTop: "0.25rem" }}>
+        <div
+          style={{ fontSize: "0.78rem", color: "var(--muted-foreground)", marginTop: "0.25rem" }}
+        >
           {label}
         </div>
         {subvalue && (
-          <div style={{ fontSize: "0.72rem", color: "var(--muted-foreground)", opacity: 0.8, marginTop: "0.15rem" }}>
+          <div
+            style={{
+              fontSize: "0.72rem",
+              color: "var(--muted-foreground)",
+              opacity: 0.8,
+              marginTop: "0.15rem",
+            }}
+          >
             {subvalue}
           </div>
         )}
@@ -1373,9 +1643,17 @@ function StatCard({
   );
 }
 
-function SectionTitle({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+function SectionTitle({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
   return (
-    <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--foreground)", margin: 0, ...style }}>
+    <h2
+      style={{ fontSize: "1rem", fontWeight: 700, color: "var(--foreground)", margin: 0, ...style }}
+    >
       {children}
     </h2>
   );
@@ -1421,7 +1699,14 @@ function RoleBadge({ role }: { role: "user" | "admin" }) {
 
 function LoadingRow() {
   return (
-    <div style={{ padding: "2rem", textAlign: "center", color: "var(--muted-foreground)", fontSize: "0.875rem" }}>
+    <div
+      style={{
+        padding: "2rem",
+        textAlign: "center",
+        color: "var(--muted-foreground)",
+        fontSize: "0.875rem",
+      }}
+    >
       Loading…
     </div>
   );
@@ -1429,7 +1714,14 @@ function LoadingRow() {
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div style={{ padding: "2.5rem", textAlign: "center", color: "var(--muted-foreground)", fontSize: "0.875rem" }}>
+    <div
+      style={{
+        padding: "2.5rem",
+        textAlign: "center",
+        color: "var(--muted-foreground)",
+        fontSize: "0.875rem",
+      }}
+    >
       {text}
     </div>
   );

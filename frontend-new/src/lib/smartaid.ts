@@ -132,7 +132,25 @@ export const EMERGENCY_TYPES: EmergencyType[] = [
     precautions: ["Send someone for an AED if one is nearby"],
     avoid: ["Do not leave the person alone", "Do not give anything by mouth"],
   },
+  {
+    id: "general",
+    label: "General Medical Assessment",
+    hint: "Symptom evaluation and first-aid advisory",
+    baseSeverity: "Moderate",
+    keywords: ["pain", "discomfort", "sick", "scratch", "cut", "wound", "general", "symptom", "rash", "fever"],
+    steps: [
+      { title: "Assess the situation", detail: "Ensure the surroundings are safe. Sit or lie down comfortably." },
+      { title: "Clean and protect wounds", detail: "For minor scratches or cuts, rinse with clean water and apply a clean dressing." },
+      { title: "Monitor symptoms", detail: "Watch for any swelling, redness, fever, or increasing pain." },
+      { title: "Seek medical care if needed", detail: "Consult a healthcare provider or outpatient clinic if symptoms do not improve." },
+    ],
+    precautions: ["If severe pain, breathing difficulty, or dizziness develops, seek emergency care immediately"],
+    avoid: ["Do not apply unverified home remedies to open wounds", "Do not ignore spreading redness or fever"],
+  },
 ];
+
+export const GENERAL_EMERGENCY: EmergencyType = EMERGENCY_TYPES.find((e) => e.id === "general")!;
+
 
 export const SEVERITY_ORDER: SeverityLevel[] = ["Low", "Moderate", "Urgent", "Critical"];
 
@@ -166,6 +184,10 @@ export type AssessmentResult = {
   factors: { label: string; weight: number; note: string }[];
   /** True when the backend used estimated (not measured) vital signs. */
   vitalsEstimated?: boolean;
+  /** Full clinical reasoning string returned by backend XGBoost triage engine. */
+  reasoning?: string;
+  /** True if safety override rule was triggered. */
+  isOverride?: boolean;
 };
 
 export const DEFAULT_INPUT: AssessmentInput = {
@@ -202,9 +224,10 @@ function matchEmergency(input: AssessmentInput): EmergencyType {
     if (found) return found;
   }
   const text = input.symptoms.toLowerCase();
-  let best: EmergencyType = EMERGENCY_TYPES[0]!;
-  let bestScore = -1;
+  let best: EmergencyType = GENERAL_EMERGENCY;
+  let bestScore = 0;
   for (const e of EMERGENCY_TYPES) {
+    if (e.id === "general") continue;
     const score = e.keywords.reduce((acc, k) => acc + (text.includes(k) ? 1 : 0), 0);
     if (score > bestScore) {
       bestScore = score;

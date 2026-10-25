@@ -1,8 +1,10 @@
 import { saveSymptomInput } from "@/lib/symptomService";
-import { getBackendSessionId } from "@/lib/backendSession";
+import { getBackendSessionId, setBackendSessionId } from "@/lib/backendSession";
+import { startSession, DIRECT_START_QR_CODE_ID } from "@/lib/qrService";
+import { getAdminToken } from "@/lib/adminAuth";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Mic, Sparkles } from "lucide-react";
+import { ArrowRight, Loader2, Mic, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StepProgress } from "@/components/step-progress";
 import {
@@ -22,29 +24,80 @@ export const Route = createFileRoute("/symptoms")({
   head: () => ({
     meta: [
       { title: "Symptom Input — SmartAid AI" },
-      { name: "description", content: "Describe symptoms in natural language and add the details SmartAid AI needs to predict emergency severity." },
+      {
+        name: "description",
+        content:
+          "Describe symptoms in natural language and add the details SmartAid AI needs to predict emergency severity.",
+      },
       { property: "og:title", content: "Symptom Input — SmartAid AI" },
-      { property: "og:description", content: "Natural language symptom entry for AI emergency triage." },
+      {
+        property: "og:description",
+        content: "Natural language symptom entry for AI emergency triage.",
+      },
     ],
   }),
   component: SymptomsPage,
 });
 
-const CONDITIONS = ["Diabetes", "Heart condition", "Asthma", "Pregnancy", "Blood thinners", "Allergies"];
+interface FormErrors {
+  symptoms?: string;
+  age?: string;
+}
+
+interface SpeechRecognitionEventLike {
+  results: {
+    [key: number]: {
+      [key: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+interface SpeechRecognitionErrorEventLike {
+  error: string;
+}
+
+interface SpeechRecognitionInstanceLike {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onstart: (() => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
+  onend: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  start: () => void;
+}
+
+type SpeechRecognitionConstructorLike = new () => SpeechRecognitionInstanceLike;
+
+interface WindowWithSpeechRecognition {
+  SpeechRecognition?: SpeechRecognitionConstructorLike;
+  webkitSpeechRecognition?: SpeechRecognitionConstructorLike;
+}
+
+const CONDITIONS = [
+  "Diabetes",
+  "Heart condition",
+  "Asthma",
+  "Pregnancy",
+  "Blood thinners",
+  "Allergies",
+];
 
 function SymptomsPage() {
   const { type } = Route.useSearch();
   const navigate = useNavigate();
   const existing = typeof window !== "undefined" ? loadSession() : null;
-  const [input, setInput] = useState<AssessmentInput>(
-    {
-      ...DEFAULT_INPUT,
-      ...(existing?.input ?? {}),
-      emergencyId: type ?? existing?.input.emergencyId ?? null,
-    },
-  );
+  const isFreshAssessment = !existing?.result;
+  const [input, setInput] = useState<AssessmentInput>({
+    ...DEFAULT_INPUT,
+    ...(isFreshAssessment ? existing?.input ?? {} : {}),
+    emergencyId: type ?? (isFreshAssessment ? existing?.input.emergencyId : null) ?? null,
+  });
   const [step, setStep] = useState(0);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [submitting, setSubmitting] = useState(false);
 
   const selected = EMERGENCY_TYPES.find((e) => e.id === input.emergencyId);
 
@@ -54,7 +107,7 @@ function SymptomsPage() {
   const stepLabels = ["Describe symptoms", "Rapid checks", "Patient details"];
 
   const validateStep = () => {
-    const nextErrors: Record<string, string> = {};
+    const nextErrors: FormErrors = {};
     if (step === 0 && !selected && !input.symptoms.trim()) {
       nextErrors.symptoms = "Please describe the situation or choose an emergency category.";
     }
@@ -68,7 +121,7 @@ function SymptomsPage() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step < 2) {
       if (validateStep()) {
@@ -76,39 +129,77 @@ function SymptomsPage() {
       }
       return;
     }
-    if (!validateStep()) return;
+    if (!validateStep() || submitting) return;
 
+    setSubmitting(true);
     saveSession({ input, result: null, startedAt: new Date().toISOString() });
 
-    const backendSessionId = getBackendSessionId();
+    let backendSessionId = getBackendSessionId();
     if (!backendSessionId) {
-      console.warn("No backend session ID found — symptom data will NOT be saved to the database. Did you start from /session/{id}?");
+      try {
+        const token = getAdminToken();
+        const newSession = await startSession(DIRECT_START_QR_CODE_ID, token);
+        backendSessionId = newSession.session_id;
+        setBackendSessionId(backendSessionId);
+      } catch (err) {
+        console.warn("Direct assessment auto-session initialization deferred:", err);
+      }
     }
+
     if (backendSessionId) {
+      // Omit normal breathing from free-text so naive backend TF-IDF feature extractors
+      // do not capture the token "breathing" and artificially elevate respiratory risk.
+      // Genuine breathing distress ("difficult" or "none") is explicitly included.
+      const breathingText =
+        input.breathing === "none"
+          ? "Breathing: none"
+          : input.breathing === "difficult"
+            ? "Breathing: difficult"
+            : null;
+
+      // Omit negative bleeding keywords from free-text so naive backend substring
+      // matchers do not interpret "Bleeding: none" as an active bleeding symptom.
+      // Positive bleeding ("minor" or "severe") is explicitly included.
+      const bleedingText =
+        input.bleeding === "severe"
+          ? "Bleeding: severe"
+          : input.bleeding === "minor"
+            ? "Bleeding: minor"
+            : null;
+
       const composedText = [
         input.symptoms,
         `Responsive: ${input.conscious}`,
-        `Breathing: ${input.breathing}`,
-        `Bleeding: ${input.bleeding}`,
+        breathingText,
+        bleedingText,
         `Duration: ${input.duration}`,
         input.age ? `Age: ${input.age}` : null,
         input.sex ? `Sex: ${input.sex}` : null,
         input.conditions.length ? `Existing conditions: ${input.conditions.join(", ")}` : null,
-      ].filter(Boolean).join(". ");
+      ]
+        .filter(Boolean)
+        .join(". ");
 
-      saveSymptomInput(backendSessionId, {
-        raw_text: composedText,
-        category: selected?.label,
-        conscious: input.conscious,
-        breathing: input.breathing,
-        bleeding: input.bleeding,
-        duration: input.duration,
-        age: input.age ? Number(input.age) : undefined,
-        sex: input.sex || undefined,
-        conditions: input.conditions,
-      }).catch((err) => {
+      // If user selected an emergency category, pass its canonical label.
+      // If user described symptoms without picking a category, default to "General"
+      // to avoid unmapped/unknown category scoring.
+      const categoryPayload = selected?.label || (input.symptoms.trim() ? "General" : undefined);
+
+      try {
+        await saveSymptomInput(backendSessionId, {
+          raw_text: composedText,
+          category: categoryPayload,
+          conscious: input.conscious,
+          breathing: input.breathing,
+          bleeding: input.bleeding,
+          duration: input.duration,
+          age: input.age ? Number(input.age) : undefined,
+          sex: input.sex || undefined,
+          conditions: input.conditions,
+        });
+      } catch (err) {
         console.error("Failed to save symptom input:", err);
-      });
+      }
     }
 
     navigate({ to: "/processing" });
@@ -120,11 +211,14 @@ function SymptomsPage() {
 
       <form onSubmit={submit} className="mt-8 space-y-6 rise">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">Tell SmartAid what you see</h1>
+          <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+            Tell SmartAid what you see
+          </h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
             {selected ? (
               <>
-                Selected emergency: <span className="font-medium text-foreground">{selected.label}</span> ·{' '}
+                Selected emergency:{" "}
+                <span className="font-medium text-foreground">{selected.label}</span> ·{" "}
                 <Link to="/assessment" className="text-primary underline-offset-4 hover:underline">
                   change
                 </Link>
@@ -138,7 +232,9 @@ function SymptomsPage() {
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">Step {step + 1} of 3</p>
+              <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
+                Step {step + 1} of 3
+              </p>
               <h2 className="mt-2 text-xl font-semibold text-foreground">{stepLabels[step]}</h2>
             </div>
             <p className="text-sm text-muted-foreground max-w-xl">
@@ -166,7 +262,8 @@ function SymptomsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                  const win = window as unknown as WindowWithSpeechRecognition;
+                  const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
                   if (!SpeechRecognition) {
                     alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
                     return;
@@ -177,12 +274,18 @@ function SymptomsPage() {
                   recognition.interimResults = false;
 
                   recognition.onstart = () => console.log("Mic listening started...");
-                  recognition.onerror = (event: any) => console.error("Speech recognition error:", event.error);
+                  recognition.onerror = (event: SpeechRecognitionErrorEventLike) =>
+                    console.error("Speech recognition error:", event.error);
                   recognition.onend = () => console.log("Mic listening ended.");
-                  recognition.onresult = (event: any) => {
-                    const transcript = event.results[0][0].transcript;
-                    console.log("Heard:", transcript);
-                    set("symptoms", input.symptoms ? `${input.symptoms} ${transcript}` : transcript);
+                  recognition.onresult = (event: SpeechRecognitionEventLike) => {
+                    const transcript = event.results[0]?.[0]?.transcript;
+                    if (transcript) {
+                      console.log("Heard:", transcript);
+                      set(
+                        "symptoms",
+                        input.symptoms ? `${input.symptoms} ${transcript}` : transcript,
+                      );
+                    }
                   };
 
                   recognition.start();
@@ -192,15 +295,21 @@ function SymptomsPage() {
                 <Mic className="size-4" aria-hidden="true" />
                 Speak instead
               </button>
-              {errors.symptoms ? <p className="text-sm text-destructive">{errors.symptoms}</p> : null}
+              {errors.symptoms ? (
+                <p className="text-sm text-destructive">{errors.symptoms}</p>
+              ) : null}
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">Voice input supported</p>
-                  <p className="mt-1 leading-6">Use your device keyboard microphone to speak the emergency.</p>
+                  <p className="mt-1 leading-6">
+                    Use your device keyboard microphone to speak the emergency.
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">Plain language is fine</p>
-                  <p className="mt-1 leading-6">The AI extracts clinically relevant signs from what you type.</p>
+                  <p className="mt-1 leading-6">
+                    The AI extracts clinically relevant signs from what you type.
+                  </p>
                 </div>
               </div>
             </div>
@@ -267,11 +376,19 @@ function SymptomsPage() {
                   onChange={(e) => set("age", e.target.value)}
                   className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
-                {errors.age ? <p className="text-sm text-destructive">{errors.age}</p> : <p className="text-sm text-muted-foreground">Optional: age helps personalise the report and risk assessment.</p>}
+                {errors.age ? (
+                  <p className="text-sm text-destructive">{errors.age}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Optional: age helps personalise the report and risk assessment.
+                  </p>
+                )}
               </div>
               <div className="rounded-2xl border border-border bg-surface p-4">
                 <p className="text-sm font-medium text-foreground">Sex</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">Optional: biological sex helps the AI calibrate risk baselines.</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Optional: biological sex helps the AI calibrate risk baselines.
+                </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {(["Male", "Female", "Other", "Prefer not to say"] as const).map((s) => {
                     const active = input.sex === s;
@@ -281,8 +398,11 @@ function SymptomsPage() {
                         type="button"
                         aria-pressed={active}
                         onClick={() => set("sex", active ? "" : s)}
-                        className={`rounded-full border px-3.5 py-2 text-sm transition-colors ${active ? "border-primary bg-primary-soft text-primary" : "border-border bg-background text-muted-foreground hover:bg-secondary"
-                          }`}
+                        className={`rounded-full border px-3.5 py-2 text-sm transition-colors ${
+                          active
+                            ? "border-primary bg-primary-soft text-primary"
+                            : "border-border bg-background text-muted-foreground hover:bg-secondary"
+                        }`}
                       >
                         {s}
                       </button>
@@ -292,7 +412,9 @@ function SymptomsPage() {
               </div>
               <div className="rounded-2xl border border-border bg-surface p-4">
                 <p className="text-sm font-medium text-foreground">Existing conditions</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">Select any conditions that apply. These are optional but useful.</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Select any conditions that apply. These are optional but useful.
+                </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {CONDITIONS.map((c) => {
                     const active = input.conditions.includes(c);
@@ -302,10 +424,18 @@ function SymptomsPage() {
                         type="button"
                         aria-pressed={active}
                         onClick={() =>
-                          set("conditions", active ? input.conditions.filter((x) => x !== c) : [...input.conditions, c])
+                          set(
+                            "conditions",
+                            active
+                              ? input.conditions.filter((x) => x !== c)
+                              : [...input.conditions, c],
+                          )
                         }
-                        className={`rounded-full border px-3.5 py-2 text-sm transition-colors ${active ? "border-primary bg-primary-soft text-primary" : "border-border bg-background text-muted-foreground hover:bg-secondary"
-                          }`}
+                        className={`rounded-full border px-3.5 py-2 text-sm transition-colors ${
+                          active
+                            ? "border-primary bg-primary-soft text-primary"
+                            : "border-border bg-background text-muted-foreground hover:bg-secondary"
+                        }`}
                       >
                         {c}
                       </button>
@@ -318,11 +448,20 @@ function SymptomsPage() {
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Button type="submit" size="lg">
-            {step < 2 ? "Continue" : "Analyse with AI"}
+          <Button type="submit" size="lg" disabled={submitting}>
+            {step < 2 ? (
+              "Continue"
+            ) : submitting ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Saving symptoms...
+              </>
+            ) : (
+              "Analyse with AI"
+            )}
           </Button>
           {step > 0 ? (
-            <Button type="button" variant="secondary" size="lg" onClick={() => setStep(step - 1)}>
+            <Button type="button" variant="secondary" size="lg" disabled={submitting} onClick={() => setStep(step - 1)}>
               Back
             </Button>
           ) : (
@@ -356,10 +495,11 @@ function ChoiceGroup({
         {options.map((o) => (
           <label
             key={o.value}
-            className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm transition-colors ${value === o.value
-              ? "border-primary bg-primary-soft text-primary"
-              : "border-border bg-background text-muted-foreground hover:border-primary/60 hover:bg-secondary"
-              }`}
+            className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm transition-colors ${
+              value === o.value
+                ? "border-primary bg-primary-soft text-primary"
+                : "border-border bg-background text-muted-foreground hover:border-primary/60 hover:bg-secondary"
+            }`}
           >
             <input
               type="radio"

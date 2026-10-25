@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
-import { EMERGENCY_TYPES, extractSymptoms, loadSession, saveSession, type SeverityLevel } from "@/lib/smartaid";import { getBackendSessionId } from "@/lib/backendSession";
+import { EMERGENCY_TYPES, GENERAL_EMERGENCY, extractSymptoms, loadSession, saveSession, type SeverityLevel } from "@/lib/smartaid";
+import { getBackendSessionId } from "@/lib/backendSession";
 import { predictSeverity } from "@/lib/severityService";
 
 export const Route = createFileRoute("/processing")({
@@ -39,12 +40,33 @@ function ProcessingPage() {
     const backendSessionId = getBackendSessionId();
 
     const BACKEND_TO_LOCAL_ID: Record<string, string> = {
-      "Snake bite": "snakebite",
-      "Heart attack": "cardiac",
-      "Choking": "choking",
-      "Burn": "burn",
-      "Fracture": "fracture",
-      "Electric shock": "shock-electric",
+      // Canonical backend categories
+      cardiac: "cardiac",
+      respiratory: "choking",
+      injury: "fracture",
+      burn: "burn",
+      "snake bite": "snakebite",
+      "electric shock": "shock-electric",
+      neurological: "unconscious",
+      general: "general",
+      gastrointestinal: "general",
+      "fever/infection": "general",
+      "fever / infection": "general",
+      poisoning: "general",
+      unknown: "general",
+
+      // Common aliases and UI names
+      "heart attack": "cardiac",
+      "chest pain / heart attack": "cardiac",
+      choking: "choking",
+      fracture: "fracture",
+      "fracture or fall injury": "fracture",
+      "burn or scald": "burn",
+      snakebite: "snakebite",
+      "severe bleeding": "bleeding",
+      bleeding: "bleeding",
+      "unconscious / not responding": "unconscious",
+      unconscious: "unconscious",
     };
 
     const finish = async () => {
@@ -65,11 +87,19 @@ function ProcessingPage() {
         };
         const severity = severityMap[prediction.severity_level] ?? "Moderate";
 
-        const localId = prediction.emergency_type ? BACKEND_TO_LOCAL_ID[prediction.emergency_type] : undefined;
-const matchedType =
-  (localId && EMERGENCY_TYPES.find((e) => e.id === localId)) ||
-  EMERGENCY_TYPES.find((e) => e.id === session.input.emergencyId) ||
-  EMERGENCY_TYPES[0]!;
+        const normCategory = prediction.emergency_type?.trim().toLowerCase();
+        const localId = normCategory ? BACKEND_TO_LOCAL_ID[normCategory] : undefined;
+        const matchedType =
+          (localId && EMERGENCY_TYPES.find((e) => e.id === localId)) ||
+          (session.input.emergencyId && EMERGENCY_TYPES.find((e) => e.id === session.input.emergencyId)) ||
+          GENERAL_EMERGENCY;
+
+        const isOverride = Boolean(
+          prediction.reasoning?.toUpperCase().includes("OVERRIDE") ||
+          session.input.conscious === "no" ||
+          session.input.breathing === "none" ||
+          session.input.bleeding === "severe"
+        );
 
         saveSession({
           ...session,
@@ -79,6 +109,8 @@ const matchedType =
             emergency: matchedType,
             extractedSymptoms: extractSymptoms(session.input.symptoms),
             vitalsEstimated: prediction.vitals_estimated ?? true,
+            reasoning: prediction.reasoning,
+            isOverride,
             factors: [
               {
                 label: prediction.emergency_type ?? "General assessment",

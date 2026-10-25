@@ -15,7 +15,7 @@ router = APIRouter(tags=["health"])
 @router.get("/health/live")
 def liveness():
     """
-    Lightweight liveness probe for container orchestrators (e.g. Kubernetes, Docker).
+    Lightweight liveness probe for process supervisors, load balancers, and uptime monitors.
     Returns 200 OK immediately if the web process is running.
     """
     return {"status": "alive"}

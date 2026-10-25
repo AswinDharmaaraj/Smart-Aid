@@ -16,7 +16,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "SmartAid AI — QR-Based First Aid Decision Support" },
       {
         property: "og:description",
-        content: "Scan a QR code and get AI-assessed emergency severity, personalised first aid steps, explainable recommendations and a shareable emergency report.",
+        content:
+          "Scan a QR code and get AI-assessed emergency severity, personalised first aid steps, explainable recommendations and a shareable emergency report.",
       },
     ],
   }),
@@ -24,10 +25,26 @@ export const Route = createFileRoute("/")({
 });
 
 const HIGHLIGHTS = [
-  { icon: Brain, title: "AI severity prediction", body: "Grades the emergency as Low, Moderate, Urgent or Critical." },
-  { icon: Sparkles, title: "Describe it your way", body: "NLP reads plain-language descriptions, not forms." },
-  { icon: ShieldCheck, title: "Explainable results", body: "Every result shows which factors drove it." },
-  { icon: FileText, title: "Hospital-ready report", body: "One tap to download or share with paramedics." },
+  {
+    icon: Brain,
+    title: "AI severity prediction",
+    body: "Grades the emergency as Low, Moderate, Urgent or Critical.",
+  },
+  {
+    icon: Sparkles,
+    title: "Describe it your way",
+    body: "NLP reads plain-language descriptions, not forms.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Explainable results",
+    body: "Every result shows which factors drove it.",
+  },
+  {
+    icon: FileText,
+    title: "Hospital-ready report",
+    body: "One tap to download or share with paramedics.",
+  },
 ];
 
 function Home() {
@@ -48,12 +65,15 @@ function Home() {
               Calm first aid guidance in the first 60 seconds
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-muted-foreground md:text-lg">
-              The AI predicts severity, explains why, and prepares a hospital-ready report while you keep the
-              patient safe.
+              The AI predicts severity, explains why, and prepares a hospital-ready report while you
+              keep the patient safe.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link to={`/session/${DIRECT_START_QR_CODE_ID}`}>
+                <Link
+                  to="/session/$qrCodeId"
+                  params={{ qrCodeId: String(DIRECT_START_QR_CODE_ID) }}
+                >
                   Start assessment <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
               </Button>
@@ -86,7 +106,11 @@ function Home() {
               <p className="font-medium">{e.label}</p>
               <p className="mt-1.5 text-sm text-muted-foreground">{e.hint}</p>
               <span className="mt-4 inline-flex items-center gap-1 text-sm text-primary">
-                Start <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                Start{" "}
+                <ArrowRight
+                  className="size-3.5 transition-transform group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
               </span>
             </Link>
           ))}

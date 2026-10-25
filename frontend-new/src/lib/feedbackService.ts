@@ -1,11 +1,7 @@
 import { apiRequest } from "./api";
 
 export type FeedbackCategory =
-  | "guidance_clarity"
-  | "hospital_locator"
-  | "triage_accuracy"
-  | "system_usability"
-  | "general";
+  "guidance_clarity" | "hospital_locator" | "triage_accuracy" | "system_usability" | "general";
 
 export interface FeedbackCreate {
   session_id?: number | null;
@@ -69,13 +65,13 @@ export async function submitFeedback(
     category: data.category,
   };
   if (data.session_id !== undefined && data.session_id !== null) {
-    payload.session_id = data.session_id;
+    payload["session_id"] = data.session_id;
   }
   if (data.comments && data.comments.trim()) {
-    payload.comments = data.comments.trim();
+    payload["comments"] = data.comments.trim();
   }
   if (data.contact_email && data.contact_email.trim()) {
-    payload.contact_email = data.contact_email.trim();
+    payload["contact_email"] = data.contact_email.trim();
   }
 
   return apiRequest<FeedbackResponse>("/feedback", {

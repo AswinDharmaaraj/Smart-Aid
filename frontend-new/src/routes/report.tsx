@@ -15,18 +15,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { StepProgress } from "@/components/step-progress";
 import { SeverityBadge } from "@/components/severity-badge";
-import {
-  clearSession,
-  loadSession,
-  reportId,
-  type Session,
-} from "@/lib/smartaid";
+import { clearSession, loadSession, reportId, type Session } from "@/lib/smartaid";
 import { getBackendSessionId } from "@/lib/backendSession";
 import { getAdminToken } from "@/lib/adminAuth";
-import {
-  getIncidentReport,
-  type IncidentReportResponse,
-} from "@/lib/reportService";
+import { getIncidentReport, type IncidentReportResponse } from "@/lib/reportService";
 import { FeedbackForm } from "@/components/feedback-form";
 
 type ReportSearch = { sessionId?: number | undefined };
@@ -62,8 +54,7 @@ function ReportPage() {
   const { sessionId } = Route.useSearch();
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
-  const [backendReport, setBackendReport] =
-    useState<IncidentReportResponse | null>(null);
+  const [backendReport, setBackendReport] = useState<IncidentReportResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(Boolean(sessionId));
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -81,11 +72,7 @@ function ReportPage() {
           setLoading(false);
         })
         .catch((err) => {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "Failed to load the emergency report.",
-          );
+          setError(err instanceof Error ? err.message : "Failed to load the emergency report.");
           setLoading(false);
         });
       return;
@@ -150,19 +137,14 @@ function ReportPage() {
 
   // Resolve values prioritizing official backend data when available.
   const id =
-    backendReport?.report_id ??
-    (session ? reportId(session.startedAt) : `SA-SESSION-${sessionId}`);
-  const startedAt =
-    backendReport?.started_at ??
-    session?.startedAt ??
-    new Date().toISOString();
-  const locationLabel =
-    backendReport?.qr_info?.location_name ?? "Walk-in assessment";
+    backendReport?.report_id ?? (session ? reportId(session.startedAt) : `SA-SESSION-${sessionId}`);
+  const startedAt = backendReport?.started_at ?? session?.startedAt ?? new Date().toISOString();
+  const locationLabel = backendReport?.qr_info?.location_name ?? "Walk-in assessment";
+
+  const localResult = session?.result ?? null;
 
   const rawSeverity =
-    backendReport?.prediction?.severity_level ??
-    session?.result.severity ??
-    "moderate";
+    backendReport?.prediction?.severity_level ?? localResult?.severity ?? "moderate";
   const severityLevel: "Low" | "Moderate" | "Urgent" | "Critical" =
     rawSeverity.toLowerCase() === "critical"
       ? "Critical"
@@ -176,14 +158,14 @@ function ReportPage() {
     backendReport?.prediction?.emergency_type ??
     backendReport?.guidance?.emergency_category ??
     backendReport?.symptoms?.category ??
-    session?.result.emergency.label ??
+    localResult?.emergency.label ??
     "Emergency Assessment";
 
   const confidenceDisplay =
     backendReport?.prediction?.confidence_score != null
       ? `${Math.round(backendReport.prediction.confidence_score * 100)}%`
-      : session?.result.confidence != null
-        ? `${session.result.confidence}%`
+      : localResult?.confidence != null
+        ? `${localResult.confidence}%`
         : "N/A";
 
   // Build the plain-text version for copy / share / download.
@@ -209,16 +191,14 @@ function ReportPage() {
       session?.input.symptoms ||
       "Category selected without free text"
     }`,
-    ...(session?.result.extractedSymptoms?.length
-      ? [`Extracted symptoms: ${session.result.extractedSymptoms.join(", ")}`]
+    ...(localResult?.extractedSymptoms?.length
+      ? [`Extracted symptoms: ${localResult.extractedSymptoms.join(", ")}`]
       : []),
-    ...(session?.result.factors?.length
+    ...(localResult?.factors?.length
       ? [
           ``,
           `Key severity factors:`,
-          ...session.result.factors.map(
-            (f) => `  - ${f.label} (+${f.weight}) — ${f.note}`,
-          ),
+          ...localResult.factors.map((f) => `  - ${f.label} (+${f.weight}) — ${f.note}`),
         ]
       : []),
     ...(backendReport?.prediction?.reasoning
@@ -226,28 +206,17 @@ function ReportPage() {
       : []),
     ``,
     `First aid administered (recommended):`,
-    ...(
-      backendReport?.guidance?.steps ??
-      session?.result.emergency.steps ??
-      []
-    ).map((s, i) => `  ${i + 1}. ${s.title} — ${s.detail}`),
+    ...(backendReport?.guidance?.steps ?? localResult?.emergency.steps ?? []).map(
+      (s, i) => `  ${i + 1}. ${s.title} — ${s.detail}`,
+    ),
     ...(backendReport?.guidance?.precautions?.length
-      ? [
-          ``,
-          `Precautions:`,
-          ...backendReport.guidance.precautions.map((p) => `  - ${p}`),
-        ]
+      ? [``, `Precautions:`, ...backendReport.guidance.precautions.map((p) => `  - ${p}`)]
       : []),
     ...(backendReport?.guidance?.avoid?.length
-      ? [
-          ``,
-          `Do not:`,
-          ...backendReport.guidance.avoid.map((a) => `  - ${a}`),
-        ]
+      ? [``, `Do not:`, ...backendReport.guidance.avoid.map((a) => `  - ${a}`)]
       : []),
     ``,
-    backendReport?.disclaimer ||
-      `Decision support only. Not a clinical diagnosis.`,
+    backendReport?.disclaimer || `Decision support only. Not a clinical diagnosis.`,
   ].join("\n");
 
   const download = () => {
@@ -289,8 +258,7 @@ function ReportPage() {
               to="/history"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
             >
-              <ArrowLeft className="size-3.5" aria-hidden="true" /> Back to
-              emergency history
+              <ArrowLeft className="size-3.5" aria-hidden="true" /> Back to emergency history
             </Link>
           </Button>
         </div>
@@ -336,32 +304,17 @@ function ReportPage() {
                 label="Existing conditions"
                 value={session.input.conditions.join(", ") || "None reported"}
               />
-              <Field
-                label="Duration"
-                value={session.input.duration.replace("-", " ")}
-              />
+              <Field label="Duration" value={session.input.duration.replace("-", " ")} />
             </>
           ) : (
             <>
-              <Field
-                label="Session ID"
-                value={`#${backendReport?.session_id ?? sessionId}`}
-              />
-              <Field
-                label="Network mode"
-                value={backendReport?.network_mode ?? "online"}
-              />
+              <Field label="Session ID" value={`#${backendReport?.session_id ?? sessionId}`} />
+              <Field label="Network mode" value={backendReport?.network_mode ?? "online"} />
               {backendReport?.qr_info?.install_site && (
-                <Field
-                  label="Install site"
-                  value={backendReport.qr_info.install_site}
-                />
+                <Field label="Install site" value={backendReport.qr_info.install_site} />
               )}
               {backendReport?.symptoms?.category && (
-                <Field
-                  label="Category"
-                  value={backendReport.symptoms.category}
-                />
+                <Field label="Category" value={backendReport.symptoms.category} />
               )}
             </>
           )}
@@ -378,9 +331,7 @@ function ReportPage() {
           </p>
           {backendReport?.prediction?.reasoning && (
             <p className="mt-3 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground/80">
-                Triage reasoning:
-              </span>{" "}
+              <span className="font-semibold text-foreground/80">Triage reasoning:</span>{" "}
               {backendReport.prediction.reasoning}
             </p>
           )}
@@ -392,11 +343,7 @@ function ReportPage() {
             First aid recommended
           </p>
           <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-foreground/85">
-            {(
-              backendReport?.guidance?.steps ??
-              session?.result.emergency.steps ??
-              []
-            ).map((s) => (
+            {(backendReport?.guidance?.steps ?? localResult?.emergency.steps ?? []).map((s) => (
               <li key={s.title}>{s.title}</li>
             ))}
           </ol>
@@ -405,9 +352,7 @@ function ReportPage() {
           {backendReport?.guidance?.precautions &&
             backendReport.guidance.precautions.length > 0 && (
               <div className="mt-4">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Precautions
-                </p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Precautions</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/75">
                   {backendReport.guidance.precautions.map((p) => (
                     <li key={p}>{p}</li>
@@ -417,24 +362,20 @@ function ReportPage() {
             )}
 
           {/* Avoid — shown when backend guidance is present */}
-          {backendReport?.guidance?.avoid &&
-            backendReport.guidance.avoid.length > 0 && (
-              <div className="mt-4">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Do not
-                </p>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-destructive/80">
-                  {backendReport.guidance.avoid.map((a) => (
-                    <li key={a}>{a}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          {backendReport?.guidance?.avoid && backendReport.guidance.avoid.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Do not</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-destructive/80">
+                {backendReport.guidance.avoid.map((a) => (
+                  <li key={a}>{a}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <div className="border-t border-border px-6 py-3 text-center text-[10px] text-muted-foreground">
-          {backendReport?.disclaimer ||
-            "Decision support only — not a clinical diagnosis."}
+          {backendReport?.disclaimer || "Decision support only — not a clinical diagnosis."}
         </div>
       </article>
 
@@ -475,9 +416,7 @@ function ReportPage() {
           size="lg"
           onClick={copy}
           className="w-full justify-center"
-          aria-label={
-            copied ? "Report copied" : "Copy report text to clipboard"
-          }
+          aria-label={copied ? "Report copied" : "Copy report text to clipboard"}
         >
           {copied ? (
             <Check className="size-4 text-success" aria-hidden="true" />
@@ -506,31 +445,15 @@ function ReportPage() {
           <Link to="/hospitals">Nearby hospitals</Link>
         </Button>
         {sessionId ? (
-          <Button
-            asChild
-            variant="secondary"
-            size="lg"
-            className="w-full sm:w-auto"
-          >
+          <Button asChild variant="secondary" size="lg" className="w-full sm:w-auto">
             <Link to="/history" className="inline-flex items-center gap-2">
-              <ArrowLeft className="size-4" aria-hidden="true" /> Back to
-              history
+              <ArrowLeft className="size-4" aria-hidden="true" /> Back to history
             </Link>
           </Button>
         ) : (
-          <Button
-            asChild
-            variant="secondary"
-            size="lg"
-            className="w-full sm:w-auto"
-          >
-            <Link
-              to="/"
-              onClick={() => clearSession()}
-              className="inline-flex items-center gap-2"
-            >
-              <Home className="size-4" aria-hidden="true" /> Finish and clear
-              session
+          <Button asChild variant="secondary" size="lg" className="w-full sm:w-auto">
+            <Link to="/" onClick={() => clearSession()} className="inline-flex items-center gap-2">
+              <Home className="size-4" aria-hidden="true" /> Finish and clear session
             </Link>
           </Button>
         )}
@@ -542,9 +465,7 @@ function ReportPage() {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
+      <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="mt-1 text-sm font-medium capitalize">{value}</dd>
     </div>
   );
