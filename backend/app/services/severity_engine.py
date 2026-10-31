@@ -24,13 +24,6 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-# Ensure compatibility with scikit-learn versions where _RemainderColsList may be absent
-import sklearn.compose._column_transformer
-if not hasattr(sklearn.compose._column_transformer, "_RemainderColsList"):
-    class _RemainderColsList(list):
-        pass
-    sklearn.compose._column_transformer._RemainderColsList = _RemainderColsList
-
 import joblib
 import numpy as np
 import pandas as pd
@@ -69,13 +62,16 @@ def _load_artifacts():
     return _PIPELINE, _LABEL_ENCODER
 
 
-# ── Feature definitions (must match pipeline.feature_names_in_) ────────────────
+# ── Feature definitions (20 features — must match training pipeline exactly) ────
+# Vitals (heart_rate_bpm, temperature_c, spo2_percent) are excluded (Variant B).
+# The app never collects them, so they caused systematic under-triage bias.
 ALL_FEATURES = [
-    "age", "sex", "emergency_category", "symptom_text",
+    "symptom_text",
+    "age", "symptom_duration_min",
+    "sex", "emergency_category",
     "chest_pain", "difficulty_breathing", "sweating", "nausea",
     "dizziness", "unconsciousness", "bleeding", "burn", "fever",
     "cough", "seizure", "abdominal_pain", "headache", "weakness", "injury",
-    "symptom_duration_min", "heart_rate_bpm", "temperature_c", "spo2_percent",
 ]
 
 BINARY_SYMPTOM_FEATURES = [
@@ -402,24 +398,18 @@ def _build_feature_row(
     else:
         eff_duration = float(eff_duration)
 
-    # 8. Vitals & estimation flag
+    # 8. vitals_estimated — always True in app (vitals never collected, Variant B)
     vitals_estimated = (
         heart_rate_bpm is None or temperature_c is None or spo2_percent is None
     )
-    eff_hr   = float(heart_rate_bpm) if heart_rate_bpm is not None else DEFAULT_HEART_RATE_BPM
-    eff_temp = float(temperature_c) if temperature_c is not None else DEFAULT_TEMPERATURE_C
-    eff_spo2 = float(spo2_percent) if spo2_percent is not None else DEFAULT_SPO2_PERCENT
 
-    # 9. Assemble feature dictionary
+    # 9. Assemble feature dictionary (20 features — no vitals)
     row = {
+        "symptom_text":         raw_text or "",
         "age":                  eff_age,
+        "symptom_duration_min": eff_duration,
         "sex":                  mapped_sex,
         "emergency_category":   mapped_category,
-        "symptom_text":         raw_text or "",
-        "symptom_duration_min": eff_duration,
-        "heart_rate_bpm":       eff_hr,
-        "temperature_c":        eff_temp,
-        "spo2_percent":         eff_spo2,
         **binary_flags,
     }
 

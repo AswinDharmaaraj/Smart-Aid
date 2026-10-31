@@ -1,34 +1,51 @@
 {
-  "model": "RandomForestClassifier",
-  "n_estimators": 200,
-  "class_weight": "balanced",
-  "random_state": 42,
-  "train_samples": 8000,
-  "test_samples": 2000,
-  "features": [
-    "age",
-    "symptom_duration_min",
-    "heart_rate_bpm",
-    "temperature_c",
-    "spo2_percent",
-    "sex",
-    "emergency_category",
-    "chest_pain",
-    "difficulty_breathing",
-    "sweating",
-    "nausea",
-    "dizziness",
-    "unconsciousness",
-    "bleeding",
-    "burn",
-    "fever",
-    "cough",
-    "seizure",
-    "abdominal_pain",
-    "headache",
-    "weakness",
-    "injury"
-  ],
+  "model_type": "XGBClassifier",
+  "pipeline_class": "sklearn.pipeline.Pipeline",
+  "artifact_filename": "severity_model_pipeline.joblib",
+  "artifact_sha256": "867106a8aa3add2f15131f8537e7e93946e912c77df764151fa59bd05fd1d3ff",
+  "label_encoder_filename": "label_encoder.joblib",
+  "label_encoder_sha256": "8c8571398bfd7626dd701f346142a71bbb21c596aaac5c8662f4bc912a528101",
+  "training_script": "backend/scripts/train_xgboost_severity_model.py",
+  "trained_at": "2026-10-22T13:04:31.446987+00:00",
+  "python_version": "3.13.1",
+  "dataset": {
+    "filename": "smartaid_ai_test_dataset1.csv",
+    "filepath": "C:\\Users\\pdasw\\Downloads\\Aswin\\college_doc\\projects\\SmartAid\\backend\\data\\smartaid_ai_test_dataset1.csv",
+    "total_rows": 10000,
+    "train_rows": 8000,
+    "test_rows": 2000
+  },
+  "features": {
+    "text": [
+      "symptom_text"
+    ],
+    "numerical": [
+      "age",
+      "symptom_duration_min"
+    ],
+    "categorical": [
+      "sex",
+      "emergency_category"
+    ],
+    "binary": [
+      "chest_pain",
+      "difficulty_breathing",
+      "sweating",
+      "nausea",
+      "dizziness",
+      "unconsciousness",
+      "bleeding",
+      "burn",
+      "fever",
+      "cough",
+      "seizure",
+      "abdominal_pain",
+      "headache",
+      "weakness",
+      "injury"
+    ],
+    "total_count": 20
+  },
   "target": "severity",
   "severity_classes": [
     "Low",
@@ -36,81 +53,127 @@
     "Urgent",
     "Critical"
   ],
-  "accuracy": 0.9505,
-  "precision_weighted": 0.951134,
-  "recall_weighted": 0.9505,
-  "f1_weighted": 0.950692,
-  "classification_report": {
-    "Critical": {
-      "precision": 0.9886845827439887,
-      "recall": 0.9694868238557559,
-      "f1-score": 0.9789915966386554,
-      "support": 721.0
-    },
-    "Low": {
-      "precision": 0.8787878787878788,
-      "recall": 0.9508196721311475,
-      "f1-score": 0.9133858267716536,
-      "support": 122.0
-    },
-    "Moderate": {
-      "precision": 0.9422799422799423,
-      "recall": 0.9491279069767442,
-      "f1-score": 0.945691527878349,
-      "support": 688.0
-    },
-    "Urgent": {
-      "precision": 0.9252136752136753,
-      "recall": 0.9232409381663113,
-      "f1-score": 0.9242262540021344,
-      "support": 469.0
-    },
-    "accuracy": 0.9505,
-    "macro avg": {
-      "precision": 0.9337415197563712,
-      "recall": 0.9481688352824896,
-      "f1-score": 0.9405738013226981,
-      "support": 2000.0
-    },
-    "weighted avg": {
-      "precision": 0.9511337596671755,
-      "recall": 0.9505,
-      "f1-score": 0.9506919481749587,
-      "support": 2000.0
-    }
+  "split_parameters": {
+    "test_size": 0.2,
+    "random_state": 42,
+    "stratified": true
   },
-  "confusion_matrix": {
-    "labels": [
-      "Low",
-      "Moderate",
-      "Urgent",
-      "Critical"
-    ],
-    "matrix": [
+  "hyperparameters": {
+    "n_estimators": 300,
+    "max_depth": 6,
+    "learning_rate": 0.1,
+    "min_child_weight": 4,
+    "objective": "multi:softmax",
+    "eval_metric": "mlogloss",
+    "balanced_sample_weights": true,
+    "tfidf_max_features": 300,
+    "tfidf_stop_words": "english"
+  },
+  "library_versions": {
+    "sklearn": "1.9.1",
+    "xgboost": "2.1.4",
+    "joblib": "1.6.0",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6"
+  },
+  "cross_validation_train_only": {
+    "strategy": "StratifiedKFold",
+    "n_splits": 5,
+    "scoring": "f1_macro",
+    "cv_mean": 0.857369,
+    "cv_std": 0.007215
+  },
+  "held_out_test_metrics": {
+    "accuracy": 0.8635,
+    "precision_weighted": 0.8727,
+    "recall_weighted": 0.8635,
+    "f1_weighted": 0.8652,
+    "f1_macro": 0.8556,
+    "confusion_matrix": [
       [
-        116,
-        5,
+        114,
         1,
+        7,
         0
       ],
       [
-        10,
-        653,
-        23,
-        2
+        16,
+        554,
+        100,
+        18
       ],
       [
-        3,
-        27,
-        433,
-        6
-      ],
-      [
-        3,
         8,
-        11,
-        699
+        37,
+        392,
+        32
+      ],
+      [
+        6,
+        4,
+        44,
+        667
       ]
-    ]
+    ],
+    "classification_report": {
+      "Critical": {
+        "precision": 0.9302649930264993,
+        "recall": 0.9251040221914009,
+        "f1-score": 0.9276773296244785,
+        "support": 721.0
+      },
+      "Low": {
+        "precision": 0.7916666666666666,
+        "recall": 0.9344262295081968,
+        "f1-score": 0.8571428571428571,
+        "support": 122.0
+      },
+      "Moderate": {
+        "precision": 0.9295302013422819,
+        "recall": 0.8052325581395349,
+        "f1-score": 0.8629283489096573,
+        "support": 688.0
+      },
+      "Urgent": {
+        "precision": 0.7219152854511971,
+        "recall": 0.835820895522388,
+        "f1-score": 0.7747035573122529,
+        "support": 469.0
+      },
+      "accuracy": 0.8635,
+      "macro avg": {
+        "precision": 0.8433442866216612,
+        "recall": 0.87514592634038,
+        "f1-score": 0.8556130232473115,
+        "support": 2000.0
+      },
+      "weighted avg": {
+        "precision": 0.8726997203527704,
+        "recall": 0.8635,
+        "f1-score": 0.8652287278299841,
+        "support": 2000.0
+      }
+    }
+  },
+  "deployment_condition": {
+    "i": {
+      "description": "Model only (20 features, no override) \u2014 identical to held-out test metrics",
+      "dangerous_under_triage_count": 55,
+      "dangerous_under_triage_denom": 1190,
+      "dangerous_under_triage_rate": 0.046218,
+      "total_test_cases": 2000
+    },
+    "ii": {
+      "description": "Skipped",
+      "error": "Can't get attribute '_RemainderColsList' on <module 'sklearn.compose._column_transformer' from 'C:\\\\Users\\\\pdasw\\\\Downloads\\\\Aswin\\\\college_doc\\\\projects\\\\SmartAid\\\\backend\\\\venv\\\\Lib\\\\site-packages\\\\sklearn\\\\compose\\\\_column_transformer.py'>"
+    },
+    "iii": {
+      "description": "Skipped",
+      "error": "Can't get attribute '_RemainderColsList' on <module 'sklearn.compose._column_transformer' from 'C:\\\\Users\\\\pdasw\\\\Downloads\\\\Aswin\\\\college_doc\\\\projects\\\\SmartAid\\\\backend\\\\venv\\\\Lib\\\\site-packages\\\\sklearn\\\\compose\\\\_column_transformer.py'>"
+    },
+    "variant_b_note": "23-feature model (with heart_rate_bpm, temperature_c, spo2_percent). Backed up to backend/app/ml_models/_backup_23col/",
+    "variant_c_note": "B + rule: predict Critical if P(Critical) >= t. NOT adopted.",
+    "variant_c_threshold_selection": "highest t from OOF train probabilities with Critical recall >= 0.95",
+    "variant_c_rejection_reason": "73 non-Critical test rows escalated \u2014 over-alert tradeoff deemed unacceptable for deployment without clinician review."
   }
 }

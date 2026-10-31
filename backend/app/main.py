@@ -4,6 +4,7 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.qr import router as qr_router
 from app.api.v1.symptoms import router as symptoms_router
 from app.api.v1.predictions import router as predictions_router
+from app.api.v1.guidance import router as guidance_router
 from app.api.v1.admin import router as admin_router
 from app.api.v1.users import router as users_router
 
@@ -30,6 +31,7 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(qr_router, prefix="/api/v1")
 app.include_router(symptoms_router, prefix="/api/v1")
 app.include_router(predictions_router, prefix="/api/v1")
+app.include_router(guidance_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 

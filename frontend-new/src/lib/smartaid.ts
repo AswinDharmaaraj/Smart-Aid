@@ -164,6 +164,8 @@ export type AssessmentResult = {
   emergency: EmergencyType;
   extractedSymptoms: string[];
   factors: { label: string; weight: number; note: string }[];
+  /** True when the backend used estimated (not measured) vital signs. */
+  vitalsEstimated?: boolean;
 };
 
 export const DEFAULT_INPUT: AssessmentInput = {
