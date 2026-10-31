@@ -1,0 +1,196 @@
+
+
+==================== aswin_PD_synopsis.pdf ====================
+Num pages: 5
+
+--- Page 1 ---
+ 
+ 
+ 
+ 
+SYNOPSIS 
+                                                                                                                                                                   
+ 
+ 
+ 
+                                                                                                                                                                     
+ 
+ 
+ 
+ 
+ 
+ 
+                                                                                                                                                                     Name : Aswin P D 
+Roll number : 18 
+Branch : MCA 
+Semester : S3 
+Date : 25-07-2026
+--- Page 2 ---
+ 
+ 
+SmartAid AI: An Intelligent QR-Based First Aid Decision Support System 
+with Emergency Risk Assessment 
+1. Project Title 
+SmartAid AI: An Intelligent QR-Based First Aid Decision Support System with Emergency Risk Assessment 
+2. Domain / Area 
+Artificial Intelligence (AI), Machine Learning (ML), Healthcare Informatics, Decision Support Systems, Web 
+Application Development 
+3. Problem Statement 
+Medical emergencies such as burns, choking, fractures, snake bites, heart attacks, and electric shocks require 
+immediate first aid before professional medical assistance arrives. However, many people lack first-aid knowledge 
+and often panic during emergencies, leading to delayed or incorrect actions. Existing first-aid applications 
+primarily provide static information and do not assess the severity of an emergency or offer personalized 
+guidance. There is a need for an intelligent decision support system that can analyze symptoms, estimate 
+emergency severity, and provide appropriate first-aid recommendations instantly. 
+4. Objectives 
+ Develop a QR-based emergency access system for instant first-aid assistance. 
+ Analyze user-entered symptoms using Artificial Intelligence. 
+ Predict the severity level of an emergency using Machine Learning. 
+ Provide personalized first-aid recommendations based on the emergency and user profile. 
+ Explain the reason behind each recommendation using Explainable AI. 
+ Generate an emergency summary that can be shared with healthcare professionals. 
+ Provide offline access to essential first-aid guidance during network failures. 
+5. Proposed Solution 
+The proposed system provides an intelligent QR-based platform that allows users to instantly access emergency 
+first-aid guidance by scanning a QR code placed in public locations such as schools, offices, buses, factories, and 
+workplaces. Users can either describe their symptoms in natural language or choose from predefined emergency 
+categories. 
+The system employs Natural Language Processing (NLP) to identify symptoms from user input and uses a 
+Machine Learning model to estimate the severity of the emergency as Low, Moderate, Urgent, or Critical. Based 
+on the prediction, the application provides personalized first-aid instructions, highlights precautions, explains why 
+a recommendation is made, and advises whether immediate medical attention is required. 
+Additionally, the system generates a structured emergency report for healthcare providers and supports offline 
+access to critical first-aid procedures to ensure usability during disasters or poor network conditions. 
+--- Page 3 ---
+ 
+ 
+6. Technologies Used 
+Frontend 
+ React.js 
+ HTML5 
+ CSS3 
+ JavaScript 
+Backend 
+ FastAPI (Python) 
+Machine Learning 
+ Scikit-learn 
+ Random Forest / XGBoost 
+ Pandas 
+ NumPy 
+Natural Language Processing 
+ spaCy 
+ Transformers (Optional) 
+Database 
+ PostgreSQL / MySQL 
+Additional Tools 
+ QR Code Generator 
+ Text-to-Speech 
+ Google Maps API (Optional) 
+7. Expected Outcome 
+The proposed system will provide: 
+ Intelligent first-aid recommendations during emergencies. 
+ AI-based emergency severity prediction. 
+ Faster decision-making before professional medical assistance arrives. 
+ Explainable recommendations that improve user trust. 
+ Emergency reports that assist healthcare professionals. 
+ A low-cost, web-based platform suitable for schools, workplaces, public institutions, and community 
+awareness programs. 
+8. Social Relevance / Impact 
+The proposed system can improve emergency preparedness by providing immediate guidance during critical 
+situations. It helps reduce delays in administering first aid, improves public awareness, supports educational 
+institutions and workplaces, and can potentially reduce complications caused by incorrect first-aid practices. The  
+ 
+--- Page 4 ---
+ 
+ 
+QR-based approach also makes the solution easily accessible without requiring users to install a dedicated 
+application. 
+9. Feasibility 
+The proposed project is highly feasible within one academic semester. It primarily requires open-source software, 
+publicly available machine learning libraries, and standard web development tools. Public first-aid guidelines and 
+synthetic or publicly available emergency datasets can be used for model development and evaluation. The project 
+does not require specialized hardware, making it cost-effective and suitable as an MCA major project. 
+10. Proposed System Architecture 
+QR Code Scan 
+│ 
+▼ 
+Emergency Web Portal 
+│ 
+▼ 
+Symptom Input 
+│ 
+▼ 
+NLP Symptom Extraction 
+│ 
+▼ 
+ML Severity Prediction 
+│ 
+▼ 
+Decision Support Engine 
+┌──────┼─────────┐ 
+▼      ▼         ▼ 
+First Aid        Explainable AI        Emergency Report 
+Guidance                │ 
+                        ▼ 
+              Hospital Recommendation 
+11. Novel Features (Research Contribution) 
+ AI-based Emergency Severity Prediction. 
+ Natural Language Symptom Understanding. 
+ Explainable AI for transparent recommendations. 
+ Personalized First-Aid Guidance based on age, symptoms, and emergency type. 
+ Offline Emergency Assistance. 
+ Automatic Emergency Report Generation. 
+ QR-based instant access without requiring application installation. 
+ 
+--- Page 5 ---
+ 
+ 
+12. References 
+ American Heart Association (AHA) – Guidelines for CPR and Emergency Cardiovascular Care. 
+ World Health Organization (WHO) – Emergency Care System Framework. 
+ International Federation of Red Cross and Red Crescent Societies – First Aid Guidelines. 
+ Scikit-learn Documentation. 
+ spaCy Natural Language Processing Documentation. 
+ Recent IEEE papers on AI-based clinical decision support systems, emergency triage, and explainable AI 
+in healthcare. 
+
+==================== synopses.pdf ====================
+Num pages: 6
+
+--- Page 1 ---
+
+--- Page 2 ---
+
+--- Page 3 ---
+
+--- Page 4 ---
+
+--- Page 5 ---
+
+--- Page 6 ---
+
+
+==================== synopses_aswinpd.pdf ====================
+Num pages: 11
+
+--- Page 1 ---
+
+--- Page 2 ---
+
+--- Page 3 ---
+
+--- Page 4 ---
+
+--- Page 5 ---
+
+--- Page 6 ---
+
+--- Page 7 ---
+
+--- Page 8 ---
+
+--- Page 9 ---
+
+--- Page 10 ---
+
+--- Page 11 ---
