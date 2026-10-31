@@ -34,7 +34,7 @@ jobs:
           DATABASE_URL: "sqlite:///./test.db"
           SECRET_KEY: "ci-test-secret-key-for-running-automated-test-suite"
           APP_BASE_URL: "http://localhost:8080"
-          ALLOWED_ORIGINS: "http://localhost:8080,http://localhost:5173"
+          ALLOWED_ORIGINS: '["http://localhost:8080","http://localhost:5173"]'
         run: |
           pytest backend/tests
 
