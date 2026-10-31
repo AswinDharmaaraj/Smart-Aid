@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { startSession } from "@/lib/qrService";
 import { setBackendSessionId } from "@/lib/backendSession";
+import { getAdminToken } from "@/lib/adminAuth";
 
 export const Route = createFileRoute("/session/$qrCodeId")({
   head: () => ({
@@ -27,8 +28,9 @@ function SessionLandingPage() {
 
     const controller = new AbortController();
     const id = parseInt(qrCodeId, 10);
+    const token = getAdminToken();
 
-    startSession(id)
+    startSession(id, token)
       .then((session) => {
         if (controller.signal.aborted) return; // navigated away before response
         setBackendSessionId(session.session_id);

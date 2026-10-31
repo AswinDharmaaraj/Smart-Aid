@@ -17,6 +17,7 @@ import { Route as ExplainRouteImport } from './routes/explain'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as FlowRouteImport } from './routes/flow'
 import { Route as GuidanceRouteImport } from './routes/guidance'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as HospitalsRouteImport } from './routes/hospitals'
 import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as ProcessingRouteImport } from './routes/processing'
@@ -66,6 +67,11 @@ const FlowRoute = FlowRouteImport.update({
 const GuidanceRoute = GuidanceRouteImport.update({
   id: '/guidance',
   path: '/guidance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HospitalsRoute = HospitalsRouteImport.update({
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/flow': typeof FlowRoute
   '/guidance': typeof GuidanceRoute
+  '/history': typeof HistoryRoute
   '/hospitals': typeof HospitalsRoute
   '/offline': typeof OfflineRoute
   '/processing': typeof ProcessingRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/flow': typeof FlowRoute
   '/guidance': typeof GuidanceRoute
+  '/history': typeof HistoryRoute
   '/hospitals': typeof HospitalsRoute
   '/offline': typeof OfflineRoute
   '/processing': typeof ProcessingRoute
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/flow': typeof FlowRoute
   '/guidance': typeof GuidanceRoute
+  '/history': typeof HistoryRoute
   '/hospitals': typeof HospitalsRoute
   '/offline': typeof OfflineRoute
   '/processing': typeof ProcessingRoute
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/flow'
     | '/guidance'
+    | '/history'
     | '/hospitals'
     | '/offline'
     | '/processing'
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/flow'
     | '/guidance'
+    | '/history'
     | '/hospitals'
     | '/offline'
     | '/processing'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/flow'
     | '/guidance'
+    | '/history'
     | '/hospitals'
     | '/offline'
     | '/processing'
@@ -252,6 +264,7 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   FlowRoute: typeof FlowRoute
   GuidanceRoute: typeof GuidanceRoute
+  HistoryRoute: typeof HistoryRoute
   HospitalsRoute: typeof HospitalsRoute
   OfflineRoute: typeof OfflineRoute
   ProcessingRoute: typeof ProcessingRoute
@@ -320,6 +333,13 @@ declare module '@tanstack/react-router' {
       path: '/guidance'
       fullPath: '/guidance'
       preLoaderRoute: typeof GuidanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hospitals': {
@@ -404,6 +424,7 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   FlowRoute: FlowRoute,
   GuidanceRoute: GuidanceRoute,
+  HistoryRoute: HistoryRoute,
   HospitalsRoute: HospitalsRoute,
   OfflineRoute: OfflineRoute,
   ProcessingRoute: ProcessingRoute,

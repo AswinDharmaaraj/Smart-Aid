@@ -19,6 +19,7 @@ class QRCodeResponse(BaseModel):
 class SessionResponse(BaseModel):
     session_id: int
     qr_code_id: int
+    user_id: int | None = None
     network_mode: str
     started_at: datetime
 

@@ -1,3 +1,5 @@
+import { getAdminToken } from "./adminAuth"
+
 const API_BASE_URL = "/api/v1"
 
 interface RequestOptions {
@@ -12,8 +14,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   }
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`
+
+  // Use explicitly passed token, or fall back to signed-in user/admin token
+  const effectiveToken = token !== undefined ? token : getAdminToken()
+  if (effectiveToken) {
+    headers["Authorization"] = `Bearer ${effectiveToken}`
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
