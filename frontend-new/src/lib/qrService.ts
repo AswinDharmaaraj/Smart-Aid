@@ -1,5 +1,14 @@
 import { apiRequest } from "./api"
 
+/**
+ * Well-known QR code ID seeded by the Alembic migration
+ * `c4e8a1f02d73_seed_direct_start_qr_code`. Used by the homepage
+ * "Start assessment" and scan-page "Continue without scanning" buttons
+ * so that direct-start sessions are registered in the DB exactly like
+ * QR-scanned sessions.
+ */
+export const DIRECT_START_QR_CODE_ID = 1
+
 export interface SessionResponse {
   session_id: number
   qr_code_id: number

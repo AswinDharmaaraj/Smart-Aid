@@ -237,3 +237,36 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/*
+ * Reactive severity presentation variables
+ * Scoped via [data-severity="..."] attribute on results screen
+ */
+[data-severity="critical"] {
+  --severity-bg: color-mix(in oklch, var(--critical) 7%, var(--card));
+  --severity-border: color-mix(in oklch, var(--critical) 32%, var(--border));
+  --severity-accent: var(--critical);
+  --severity-glow: color-mix(in oklch, var(--critical) 22%, transparent);
+}
+
+[data-severity="urgent"] {
+  --severity-bg: color-mix(in oklch, var(--urgent) 7%, var(--card));
+  --severity-border: color-mix(in oklch, var(--urgent) 30%, var(--border));
+  --severity-accent: var(--urgent);
+  --severity-glow: color-mix(in oklch, var(--urgent) 18%, transparent);
+}
+
+[data-severity="moderate"] {
+  --severity-bg: color-mix(in oklch, var(--moderate) 6%, var(--card));
+  --severity-border: color-mix(in oklch, var(--moderate) 28%, var(--border));
+  --severity-accent: var(--moderate);
+  --severity-glow: color-mix(in oklch, var(--moderate) 15%, transparent);
+}
+
+[data-severity="low"] {
+  --severity-bg: color-mix(in oklch, var(--low) 6%, var(--card));
+  --severity-border: color-mix(in oklch, var(--low) 28%, var(--border));
+  --severity-accent: var(--low);
+  --severity-glow: color-mix(in oklch, var(--low) 15%, transparent);
+}
+

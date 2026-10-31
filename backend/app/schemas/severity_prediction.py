@@ -8,6 +8,7 @@ class SeverityPredictionResponse(BaseModel):
     severity_level: str
     confidence_score: float
     reasoning: str
+    vitals_estimated: bool = True
     predicted_at: datetime
 
     class Config:

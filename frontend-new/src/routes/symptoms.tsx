@@ -92,12 +92,20 @@ function SymptomsPage() {
         `Bleeding: ${input.bleeding}`,
         `Duration: ${input.duration}`,
         input.age ? `Age: ${input.age}` : null,
+        input.sex ? `Sex: ${input.sex}` : null,
         input.conditions.length ? `Existing conditions: ${input.conditions.join(", ")}` : null,
       ].filter(Boolean).join(". ");
 
       saveSymptomInput(backendSessionId, {
         raw_text: composedText,
         category: selected?.label,
+        conscious: input.conscious,
+        breathing: input.breathing,
+        bleeding: input.bleeding,
+        duration: input.duration,
+        age: input.age ? Number(input.age) : undefined,
+        sex: input.sex || undefined,
+        conditions: input.conditions,
       }).catch((err) => {
         console.error("Failed to save symptom input:", err);
       });
@@ -260,6 +268,27 @@ function SymptomsPage() {
                   className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 {errors.age ? <p className="text-sm text-destructive">{errors.age}</p> : <p className="text-sm text-muted-foreground">Optional: age helps personalise the report and risk assessment.</p>}
+              </div>
+              <div className="rounded-2xl border border-border bg-surface p-4">
+                <p className="text-sm font-medium text-foreground">Sex</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">Optional: biological sex helps the AI calibrate risk baselines.</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {(["Male", "Female", "Other", "Prefer not to say"] as const).map((s) => {
+                    const active = input.sex === s;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => set("sex", active ? "" : s)}
+                        className={`rounded-full border px-3.5 py-2 text-sm transition-colors ${active ? "border-primary bg-primary-soft text-primary" : "border-border bg-background text-muted-foreground hover:bg-secondary"
+                          }`}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="rounded-2xl border border-border bg-surface p-4">
                 <p className="text-sm font-medium text-foreground">Existing conditions</p>

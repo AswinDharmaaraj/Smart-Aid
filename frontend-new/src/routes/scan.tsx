@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, MapPin, QrCode, ScanLine, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DIRECT_START_QR_CODE_ID } from "@/lib/qrService";
 
 export const Route = createFileRoute("/scan")({
   head: () => ({
@@ -47,7 +48,7 @@ function ScanPage() {
             </p>
           </div>
           <Button asChild size="lg">
-            <Link to="/assessment" className="flex w-full items-center justify-between gap-4 rounded-2xl px-6 text-primary-foreground">
+            <Link to={`/session/${DIRECT_START_QR_CODE_ID}`} className="flex w-full items-center justify-between gap-4 rounded-2xl px-6 text-primary-foreground">
               <span>
                 <span className="flex items-center gap-2 font-semibold">
                   <ScanLine className="size-4" aria-hidden="true" /> Continue without scanning

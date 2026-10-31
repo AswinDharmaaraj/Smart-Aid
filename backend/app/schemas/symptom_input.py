@@ -5,6 +5,13 @@ from datetime import datetime
 class SymptomInputCreate(BaseModel):
     raw_text: str
     category: str | None = None
+    conscious: str | None = None
+    breathing: str | None = None
+    bleeding: str | None = None
+    duration: str | None = None
+    age: str | int | float | None = None
+    sex: str | None = None
+    conditions: list[str] | None = None
 
     @field_validator("raw_text")
     @classmethod
